@@ -890,7 +890,7 @@
     <div class="combo-counter"><b id="attar-combo-count">0</b> / 4 selected</div>
     <div class="combo-product-list" id="attar-combo-list"></div>
     <div class="combo-price-box">
-      <span class="cp-label">Combo Price (4 &times; 10ml Attar Testers)</span>
+      <span class="cp-label">Combo Price (4 &times; 3ml Attar Testers)</span>
       <span class="cp-value" id="attar-combo-price">Rs. 0</span>
     </div>
     <button type="button" class="combo-add-btn" id="attar-combo-add" disabled>Add Combo to Cart</button>
@@ -1413,7 +1413,7 @@
       if (mode === 'perfume') total += 50;
       total = Math.round(total);
 
-      const comboLabel = mode === 'attar' ? 'Attar Tester Combo (4×10ml)' : 'Perfume Tester Combo (4×10ml)';
+      const comboLabel = mode === 'attar' ? 'Attar Tester Combo (4×3ml)' : 'Perfume Tester Combo (4×10ml)';
       CART.push({ name: comboLabel, size: names.join(', '), price: total, qty: 1 });
       saveCart();
       updateCartBadge();
