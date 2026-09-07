@@ -1098,8 +1098,12 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       <div id="upi-qr-section" style="margin-top:18px; padding-top:16px; border-top:1px dashed var(--border); text-align:center;">
         <div class="cart-form-label" style="margin-bottom:10px;">Or Pay Instantly via UPI</div>
         <div id="upi-qr-code" style="display:flex; justify-content:center; margin-bottom:8px;"></div>
-        <div id="upi-qr-amount" style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; color:var(--gold-light); font-weight:bold;"></div>
-        <div class="cart-form-hint">Scan with any UPI app (GPay / PhonePe / Paytm) — pays exact order amount</div>
+        <div id="upi-qr-amount" style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; color:var(--gold-light); font-weight:bold; margin-bottom:10px;"></div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
+          <span id="upi-id-display" style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; color:var(--ivory); background:#201B16; border:1px solid var(--border); border-radius:6px; padding:7px 12px;">UPI ID: tabassum069-3@okaxis</span>
+          <button type="button" id="upi-id-copy-btn" style="background:transparent; border:1px solid var(--gold); color:var(--gold-light); font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; font-weight:bold; padding:7px 12px; border-radius:6px; cursor:pointer;">Copy</button>
+        </div>
+        <div class="cart-form-hint">Scan the QR, or if it doesn't work — copy the UPI ID and pay manually via GPay/PhonePe</div>
       </div>
 
       <button type="button" class="cart-order-btn" id="cart-whatsapp-btn" disabled>
@@ -1561,6 +1565,38 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     });
 
     amountLabel.textContent = `Pay Rs. ${total}`;
+  }
+
+  // Copy UPI ID to clipboard as a manual fallback if the QR doesn't scan
+  const upiCopyBtn = document.getElementById('upi-id-copy-btn');
+  if (upiCopyBtn) {
+    upiCopyBtn.addEventListener('click', function () {
+      const text = UPI_ID;
+      const done = function () {
+        const original = upiCopyBtn.textContent;
+        upiCopyBtn.textContent = 'Copied ✓';
+        setTimeout(function () { upiCopyBtn.textContent = original; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () {
+          fallbackCopy(text, done);
+        });
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+  }
+
+  function fallbackCopy(text, done) {
+    const temp = document.createElement('textarea');
+    temp.value = text;
+    temp.style.position = 'fixed';
+    temp.style.opacity = '0';
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(temp);
   }
 
   function renderCart() {
