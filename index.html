@@ -1239,7 +1239,8 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 
   async function loadProductsFromGoogleSheet() {
     try {
-      const response = await fetch(GOOGLE_SHEET_CSV_URL, { cache: 'no-store', mode: 'cors' });
+      const bustUrl = GOOGLE_SHEET_CSV_URL + (GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const response = await fetch(bustUrl, { cache: 'no-store', redirect: 'follow' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const csv = await response.text();
@@ -1456,7 +1457,18 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       reloadProductCatalog();
       showCatalogStatus(`${PRODUCTS.length} fragrances · Live catalogue`, 'ok');
     } else {
-      showCatalogStatus(`${PRODUCTS.length} fragrances · Local backup catalogue`, 'error');
+      // First attempt failed (transient network/CORS hiccup) — retry once before giving up.
+      setTimeout(function () {
+        loadProductsFromGoogleSheet().then(function (retryProducts) {
+          if (retryProducts) {
+            PRODUCTS = retryProducts;
+            reloadProductCatalog();
+            showCatalogStatus(`${PRODUCTS.length} fragrances · Live catalogue`, 'ok');
+          } else {
+            showCatalogStatus(`${PRODUCTS.length} fragrances · Local backup catalogue`, 'error');
+          }
+        });
+      }, 1500);
     }
   });
 
