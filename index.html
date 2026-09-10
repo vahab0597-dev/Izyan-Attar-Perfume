@@ -1241,6 +1241,16 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     };
   }
 
+  function findHeaderRowIndex(rows) {
+    // The sheet may have title/instruction rows above the real header row.
+    // Scan for the row that actually contains "name" and "image" as column headers.
+    for (let i = 0; i < rows.length; i++) {
+      const normalized = rows[i].map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
+      if (normalized.includes('name') && normalized.includes('image')) return i;
+    }
+    return 0; // fallback: assume the first row is the header row
+  }
+
   async function fetchAndParseCSV(url) {
     const bustUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
     const response = await fetch(bustUrl, { cache: 'no-store', redirect: 'follow' });
@@ -1250,12 +1260,13 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     const rows = csvToRows(csv);
     if (rows.length < 2) throw new Error('No product rows found');
 
-    const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
+    const headerIdx = findHeaderRowIndex(rows);
+    const headers = rows[headerIdx].map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
     const required = ['name', 'image', 'type', 'bestseller', 'attar12', 'perfume50', 'notes', 'active'];
     const missing = required.filter(h => !headers.includes(h));
     if (missing.length) throw new Error(`Missing columns: ${missing.join(', ')}`);
 
-    const loaded = rows.slice(1)
+    const loaded = rows.slice(headerIdx + 1)
       .map((row, i) => normalizeProductRow(headers, row, i))
       .filter(p => p.name && p.active);
 
@@ -1264,14 +1275,14 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   }
 
   async function loadProductsFromGoogleSheet() {
-    // Try the CORS-friendlier gviz endpoint first, then fall back to the /pub CSV link,
-    // and only give up (returning null) if both fail.
+    // The /pub CSV link is the reliable, publicly-accessible path (works without any
+    // Google login). Try it first; only fall back to the local catalogue if it fails.
     try {
-      return await fetchAndParseCSV(GOOGLE_SHEET_CSV_URL_ALT);
+      return await fetchAndParseCSV(GOOGLE_SHEET_CSV_URL);
     } catch (firstError) {
-      console.warn('IZYAN: gviz endpoint failed, trying /pub endpoint.', firstError);
+      console.warn('IZYAN: /pub endpoint failed, trying gviz endpoint.', firstError);
       try {
-        return await fetchAndParseCSV(GOOGLE_SHEET_CSV_URL);
+        return await fetchAndParseCSV(GOOGLE_SHEET_CSV_URL_ALT);
       } catch (secondError) {
         console.warn('IZYAN: Google Sheet catalog could not be loaded. Using local fallback.', secondError);
         return null;
