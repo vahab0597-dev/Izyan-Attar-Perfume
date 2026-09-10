@@ -1169,6 +1169,10 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   // ============================================================
   const GOOGLE_SHEET_CSV_URL =
     'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMdOSPXvgALgLlTU107QpaxVYwZIEX1RJvSNxhztqZ50NEK1dU8FHDPiapt5mkAA/pub?gid=1396737628&single=true&output=csv';
+  // Backup endpoint: Google's gviz/tq CSV export tends to be more consistently
+  // CORS-friendly for client-side fetch() than the /pub link above.
+  const GOOGLE_SHEET_CSV_URL_ALT =
+    'https://docs.google.com/spreadsheets/d/1ArnfA0GLL3bGfG9i-6fKBCtUbGzt8a5H/gviz/tq?tqx=out:csv&gid=1396737628';
 
   let PRODUCTS = FALLBACK_PRODUCTS.slice();
 
@@ -1237,30 +1241,41 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     };
   }
 
+  async function fetchAndParseCSV(url) {
+    const bustUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+    const response = await fetch(bustUrl, { cache: 'no-store', redirect: 'follow' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const csv = await response.text();
+    const rows = csvToRows(csv);
+    if (rows.length < 2) throw new Error('No product rows found');
+
+    const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
+    const required = ['name', 'image', 'type', 'bestseller', 'attar12', 'perfume50', 'notes', 'active'];
+    const missing = required.filter(h => !headers.includes(h));
+    if (missing.length) throw new Error(`Missing columns: ${missing.join(', ')}`);
+
+    const loaded = rows.slice(1)
+      .map((row, i) => normalizeProductRow(headers, row, i))
+      .filter(p => p.name && p.active);
+
+    if (!loaded.length) throw new Error('No active products found');
+    return loaded;
+  }
+
   async function loadProductsFromGoogleSheet() {
+    // Try the CORS-friendlier gviz endpoint first, then fall back to the /pub CSV link,
+    // and only give up (returning null) if both fail.
     try {
-      const bustUrl = GOOGLE_SHEET_CSV_URL + (GOOGLE_SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
-      const response = await fetch(bustUrl, { cache: 'no-store', redirect: 'follow' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const csv = await response.text();
-      const rows = csvToRows(csv);
-      if (rows.length < 2) throw new Error('No product rows found');
-
-      const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
-      const required = ['name', 'image', 'type', 'bestseller', 'attar12', 'perfume50', 'notes', 'active'];
-      const missing = required.filter(h => !headers.includes(h));
-      if (missing.length) throw new Error(`Missing columns: ${missing.join(', ')}`);
-
-      const loaded = rows.slice(1)
-        .map((row, i) => normalizeProductRow(headers, row, i))
-        .filter(p => p.name && p.active);
-
-      if (!loaded.length) throw new Error('No active products found');
-      return loaded;
-    } catch (error) {
-      console.warn('IZYAN: Google Sheet catalog could not be loaded. Using local fallback.', error);
-      return null;
+      return await fetchAndParseCSV(GOOGLE_SHEET_CSV_URL_ALT);
+    } catch (firstError) {
+      console.warn('IZYAN: gviz endpoint failed, trying /pub endpoint.', firstError);
+      try {
+        return await fetchAndParseCSV(GOOGLE_SHEET_CSV_URL);
+      } catch (secondError) {
+        console.warn('IZYAN: Google Sheet catalog could not be loaded. Using local fallback.', secondError);
+        return null;
+      }
     }
   }
 
