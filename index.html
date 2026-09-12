@@ -927,12 +927,12 @@ body:before{
 .collection-divider{max-width:1180px;margin:0 auto 10px;padding:12px 18px;display:flex;justify-content:space-between;border-top:1px solid var(--line);border-bottom:1px solid rgba(255,255,255,.05);color:#746d63;font:9px Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase}
 
 /* Product grid/card */
-#product-grid{max-width:1180px !important;margin:0 auto !important;padding:10px 18px 6px !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:18px !important}
-#product-grid .card{position:relative !important;background:linear-gradient(180deg,rgba(30,24,18,.97),rgba(14,12,10,.98)) !important;border:1px solid rgba(215,186,122,.14) !important;border-radius:18px !important;overflow:hidden !important;box-shadow:0 16px 36px rgba(0,0,0,.24) !important;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease !important}
-#product-grid .card:hover{transform:translateY(-7px) !important;border-color:rgba(215,186,122,.35) !important;box-shadow:0 26px 55px rgba(0,0,0,.44),0 0 0 1px rgba(215,186,122,.05) !important}
-#product-grid .card-img{height:290px !important;object-fit:cover !important;background:radial-gradient(circle at 50% 35%,rgba(215,186,122,.12),rgba(0,0,0,.92)) !important;border-bottom:1px solid rgba(255,255,255,.06) !important}
-#product-grid .card:after{content:"";position:absolute;left:16px;right:16px;top:272px;height:2px;background:linear-gradient(90deg,transparent,rgba(215,186,122,.5),transparent);opacity:.55}
-#product-grid .card-top{padding:18px 18px 0 !important}.card-top h3{font:400 24px Georgia,serif !important;color:#f1e6d5 !important;letter-spacing:-.02em !important}
+#product-grid, #new-arrivals-grid{max-width:1180px !important;margin:0 auto !important;padding:10px 18px 6px !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:18px !important}
+#product-grid, #new-arrivals-grid .card{position:relative !important;background:linear-gradient(180deg,rgba(30,24,18,.97),rgba(14,12,10,.98)) !important;border:1px solid rgba(215,186,122,.14) !important;border-radius:18px !important;overflow:hidden !important;box-shadow:0 16px 36px rgba(0,0,0,.24) !important;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease !important}
+#product-grid, #new-arrivals-grid .card:hover{transform:translateY(-7px) !important;border-color:rgba(215,186,122,.35) !important;box-shadow:0 26px 55px rgba(0,0,0,.44),0 0 0 1px rgba(215,186,122,.05) !important}
+#product-grid, #new-arrivals-grid .card-img{height:290px !important;object-fit:cover !important;background:radial-gradient(circle at 50% 35%,rgba(215,186,122,.12),rgba(0,0,0,.92)) !important;border-bottom:1px solid rgba(255,255,255,.06) !important}
+#product-grid, #new-arrivals-grid .card:after{content:"";position:absolute;left:16px;right:16px;top:272px;height:2px;background:linear-gradient(90deg,transparent,rgba(215,186,122,.5),transparent);opacity:.55}
+#product-grid, #new-arrivals-grid .card-top{padding:18px 18px 0 !important}.card-top h3{font:400 24px Georgia,serif !important;color:#f1e6d5 !important;letter-spacing:-.02em !important}
 .card-notes{padding:0 18px !important;color:#8d8376 !important;font-size:11px !important;line-height:1.55 !important}
 .badge-row{padding:0 18px !important}.type-badge,.bestseller-badge{border-radius:999px !important;letter-spacing:.1em !important;font-size:9px !important;padding:6px 9px !important}.type-badge{background:rgba(255,255,255,.035) !important;color:#aa9d8c !important}.bestseller-badge{background:rgba(215,186,122,.1) !important;color:var(--gold2) !important}
 .toggle-row{padding:16px 18px 10px !important;border:0 !important}.toggle-btn{border:0 !important;background:transparent !important;color:#6f675d !important;font:10px Arial,sans-serif !important;letter-spacing:.14em;text-transform:uppercase}.toggle-btn.active{color:var(--gold2) !important}
@@ -957,14 +957,14 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 /* Responsive */
 @media (max-width: 1000px){
   .lux-hero{grid-template-columns:1fr;min-height:auto;padding-top:56px}.hero-art{min-height:440px;margin-top:-20px}.art-bottle{right:39%;}.ring-1{right:19%}.ring-2{right:30%}.ring-3{right:8%}
-  #product-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+  #product-grid, #new-arrivals-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
 }
 @media (max-width: 720px){
   .lux-topline{display:none}.lux-topbar{padding:10px 14px}.lux-topbar .whatsapp-header-btn{padding:8px 11px !important}
   .lux-hero{padding:48px 18px 26px}.hero-copy h1{font-size:54px}.hero-lead{font-size:14px}.hero-meta{gap:10px}.hero-art{min-height:360px}.art-bottle{right:29%;top:14%;transform:scale(.82)}.ring-1{right:0}.ring-2{right:12%}.ring-3{right:-8%}.hero-size-strip{padding:14px;align-items:flex-start}.hero-note{display:none}.hero-size-strip .size-guide{gap:10px;flex-wrap:wrap;justify-content:flex-end}
   .lux-offer-grid{grid-template-columns:1fr}.lux-offer{border-right:0;border-bottom:1px solid var(--line)}.lux-offer:last-child{border-bottom:0}
   .lux-collection-head{align-items:flex-start}.collection-seal{display:none}
-  #product-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;padding:8px 10px !important;gap:10px !important}.card-top h3{font-size:18px !important}.card-notes{font-size:10px !important}.toggle-row,.size-row,.badge-row,.card-top{padding-left:12px !important;padding-right:12px !important}.lux-combo{margin:0 10px 40px !important;padding:20px !important}.scent-ritual{grid-template-columns:1fr;padding:20px 10px}.ritual-tags{grid-template-columns:1fr}.tester-intro{padding:0 18px}
+  #product-grid, #new-arrivals-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;padding:8px 10px !important;gap:10px !important}.card-top h3{font-size:18px !important}.card-notes{font-size:10px !important}.toggle-row,.size-row,.badge-row,.card-top{padding-left:12px !important;padding-right:12px !important}.lux-combo{margin:0 10px 40px !important;padding:20px !important}.scent-ritual{grid-template-columns:1fr;padding:20px 10px}.ritual-tags{grid-template-columns:1fr}.tester-intro{padding:0 18px}
 }
 @media (max-width: 440px){
   .hero-actions{flex-direction:column}.hero-primary,.hero-secondary{justify-content:center}.hero-copy h1{font-size:46px}.hero-size-strip .hero-brand-lockup{display:none}.lux-filters{padding:8px 10px !important}.collection-divider span:last-child{display:none}
@@ -1037,6 +1037,9 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 
 <section class="lux-offers"><div class="lux-offer-grid"><div class="lux-offer"><span class="offer-icon">✦</span><div><b>Complimentary Delivery</b><small>On qualifying orders</small></div></div><div class="lux-offer"><span class="offer-icon">◎</span><div><b>Curated Fragrance House</b><small>Every profile has a purpose</small></div></div><div class="lux-offer"><span class="offer-icon">◌</span><div><b>Order on WhatsApp</b><small>Simple, personal &amp; direct</small></div></div></div><div id="free-delivery-badge-container"></div></section>
 <div id="offer-banner-container" class="offer-banner-lux"></div>
+
+<section id="new-arrivals" class="lux-collection-head" style="margin-top:20px"><div><div class="section-kicker">JUST IN</div><h2>New Arrivals.</h2><p>The freshest additions to the Izyan wardrobe — added straight from our latest drop.</p></div></section>
+<div class="grid" id="new-arrivals-grid"></div>
 
 <section id="collection" class="lux-collection-head"><div><div class="section-kicker">THE COLLECTION</div><h2>Find the scent that feels like you.</h2><p>Move from fresh daytime clarity to deep oud nights — your fragrance wardrobe starts here.</p></div><div class="collection-seal">EST.<br><span>IZYAN</span><br>FRAGRANCE HOUSE</div></section><div class="filter-bar lux-filters" id="filter-bar">
   <button class="filter-btn active" data-filter="all">All</button>
@@ -1262,6 +1265,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
         ? String(obj.type).toLowerCase()
         : (fallback.type || 'unisex'),
       bestseller: normalizeBoolean(obj.bestseller, !!fallback.bestseller),
+      newArrival: normalizeBoolean(obj['new arrival'], !!fallback.newArrival),
       attar12: Number.isFinite(attar12) ? attar12 : (Number(fallback.attar12) || 0),
       perfume50: Number.isFinite(perfume50) ? perfume50 : (Number(fallback.perfume50) || 0),
       notes: obj.notes || fallback.notes || '',
@@ -1433,10 +1437,29 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     return card;
   }
 
+  function renderNewArrivals() {
+    const naGrid = document.getElementById('new-arrivals-grid');
+    const naSection = document.getElementById('new-arrivals');
+    if (!naGrid) return;
+    naGrid.innerHTML = '';
+    const newItems = PRODUCTS.filter(function (p) { return p.newArrival; });
+    if (!newItems.length) {
+      if (naSection) naSection.style.display = 'none';
+      naGrid.style.display = 'none';
+      return;
+    }
+    if (naSection) naSection.style.display = '';
+    naGrid.style.display = '';
+    newItems.forEach(function (p) {
+      naGrid.appendChild(buildCard(p, PRODUCTS.indexOf(p)));
+    });
+  }
+
   const grid = document.getElementById('product-grid');
   PRODUCTS.forEach(function (p, i) {
     grid.appendChild(buildCard(p, i));
   });
+  renderNewArrivals();
 
   // Filter bar — show top 5 matches first, with a "View Full List" toggle
   const PREVIEW_COUNT = 5;
@@ -1492,6 +1515,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     PRODUCTS.forEach(function (p, i) {
       grid.appendChild(buildCard(p, i));
     });
+    renderNewArrivals();
 
     expanded = false;
     applyFilter(currentFilter);
