@@ -84,31 +84,59 @@
     letter-spacing: 0.03em;
   }
 
-  /* ---------- Festival discount banner ---------- */
-  .festival-banner {
-    background: linear-gradient(135deg, #7A1F1F, #A6192E);
-    border-radius: 10px;
+  /* ---------- Offer banner (Google Sheet driven) ---------- */
+  .offer-banner {
+    background: linear-gradient(135deg, #171006, #0d0b08);
+    border: 1px solid rgba(239, 209, 142, 0.35);
+    border-radius: 14px;
     margin: 0 16px 18px;
-    padding: 14px 18px;
+    padding: 20px 18px;
     text-align: center;
-    color: #FFF3E0;
+    font-family: 'Georgia', serif;
+  }
+  .offer-banner.is-inactive {
+    border-color: rgba(239, 209, 142, 0.18);
+  }
+  .offer-banner .ob-kicker {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #e9c766;
+    text-transform: uppercase;
+    margin-bottom: 8px;
     font-family: 'Helvetica Neue', Arial, sans-serif;
   }
-  .festival-banner .fb-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 4px;
+  .offer-banner .ob-title {
+    font-size: 18px;
+    color: #f7f3ec;
+    font-weight: 500;
+    margin-bottom: 6px;
   }
-  .festival-banner .fb-code {
-    display: inline-block;
-    background: rgba(255,255,255,0.15);
-    border: 1px dashed rgba(255,255,255,0.6);
+  .offer-banner.is-inactive .ob-title {
+    font-size: 15px;
+    font-style: italic;
+    color: #f7f3ec;
+  }
+  .offer-banner .ob-sub {
+    font-size: 12.5px;
+    color: #b9ae95;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .offer-banner .ob-code-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .offer-banner .ob-code {
+    background: rgba(255,255,255,0.08);
+    border: 1px dashed rgba(239, 209, 142, 0.6);
     border-radius: 6px;
-    padding: 3px 10px;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    margin-top: 4px;
+    padding: 4px 10px;
     font-size: 13px;
+    letter-spacing: 1px;
+    color: #e9c766;
+    font-weight: bold;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
   }
 
   /* ---------- Reviews section ---------- */
@@ -1008,7 +1036,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 </header>
 
 <section class="lux-offers"><div class="lux-offer-grid"><div class="lux-offer"><span class="offer-icon">✦</span><div><b>Complimentary Delivery</b><small>On qualifying orders</small></div></div><div class="lux-offer"><span class="offer-icon">◎</span><div><b>Curated Fragrance House</b><small>Every profile has a purpose</small></div></div><div class="lux-offer"><span class="offer-icon">◌</span><div><b>Order on WhatsApp</b><small>Simple, personal &amp; direct</small></div></div></div><div id="free-delivery-badge-container"></div></section>
-<div id="festival-banner-container" class="festival-banner-lux"></div>
+<div id="offer-banner-container" class="offer-banner-lux"></div>
 
 <section id="collection" class="lux-collection-head"><div><div class="section-kicker">THE COLLECTION</div><h2>Find the scent that feels like you.</h2><p>Move from fresh daytime clarity to deep oud nights — your fragrance wardrobe starts here.</p></div><div class="collection-seal">EST.<br><span>IZYAN</span><br>FRAGRANCE HOUSE</div></section><div class="filter-bar lux-filters" id="filter-bar">
   <button class="filter-btn active" data-filter="all">All</button>
@@ -1511,11 +1539,14 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     if (saved) CART = JSON.parse(saved);
   } catch (e) { CART = []; }
 
-  // ---------- Festival discount: toggle ON/OFF here whenever you want to launch/end it ----------
-  const FESTIVAL_DISCOUNT_ACTIVE = true;
-  const DISCOUNT_CODE = 'FESTIVE10';
-  const DISCOUNT_PERCENT = 10;
-  let appliedDiscount = 0; // 0 = no discount applied, 10 = 10% applied
+  // ---------- Offer (Google Sheet driven — edit the sheet to change/turn off the offer) ----------
+  const OFFERS_SHEET_CSV_URL =
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMdOSPXvgALgLlTU107QpaxVYwZIEX1RJvSNxhztqZ50NEK1dU8FHDPiapt5mkAA/pub?gid=1355987088&single=true&output=csv';
+  let OFFER_ACTIVE = false;
+  let OFFER_TEXT = '';
+  let OFFER_CODE = '';
+  let OFFER_PERCENT = 0;
+  let appliedDiscount = 0; // 0 = no discount applied, else the applied percent
 
   function saveCart() {
     try { localStorage.setItem('izyanCart', JSON.stringify(CART)); } catch (e) {}
@@ -1716,7 +1747,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     if (appliedDiscount > 0) {
       const discAmt = Math.round(cartSubtotal() * appliedDiscount / 100);
       finalTotal = cartSubtotal() - discAmt;
-      lines.push(`Discount (${DISCOUNT_CODE}, ${appliedDiscount}%): - Rs. ${discAmt}`);
+      lines.push(`Discount (${OFFER_CODE}, ${appliedDiscount}%): - Rs. ${discAmt}`);
       lines.push(`Total: Rs. ${finalTotal}`);
     }
     lines.push('');
@@ -1754,27 +1785,79 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   `;
 
   // ============================================================
-  // FEATURE: Festival Discount banner (only shows when FESTIVAL_DISCOUNT_ACTIVE = true above)
+  // FEATURE: Offer banner — driven by the "Offers" tab in your Google Sheet
+  // Sheet columns expected: active, offer text, discount code, discount percent
+  // Set active = No (or leave the row blank) to show the "stay tuned" message.
   // ============================================================
-  if (FESTIVAL_DISCOUNT_ACTIVE) {
-    document.getElementById('festival-banner-container').innerHTML = `
-      <div class="festival-banner">
-        <div class="fb-title">🎉 Festival Special — ${DISCOUNT_PERCENT}% OFF!</div>
-        <div>Use code at checkout: <span class="fb-code">${DISCOUNT_CODE}</span></div>
-      </div>
-    `;
+  function renderOfferBanner() {
+    const el = document.getElementById('offer-banner-container');
+    if (!el) return;
+    if (OFFER_ACTIVE && OFFER_TEXT) {
+      el.innerHTML = `
+        <div class="offer-banner">
+          <div class="ob-kicker">Special Offer</div>
+          <div class="ob-title">${OFFER_TEXT}</div>
+          ${OFFER_CODE ? `<div class="ob-code-row"><span class="ob-sub">Use code</span><span class="ob-code">${OFFER_CODE}</span></div>` : ''}
+        </div>
+      `;
+    } else {
+      el.innerHTML = `
+        <div class="offer-banner is-inactive">
+          <div class="ob-kicker">Offers</div>
+          <div class="ob-title">Stay tuned with us</div>
+          <div class="ob-sub">We'll be revealing exciting offers very soon. Stay tuned!</div>
+        </div>
+      `;
+    }
   }
+
+  async function loadOfferFromSheet() {
+    try {
+      if (!OFFERS_SHEET_CSV_URL || OFFERS_SHEET_CSV_URL.indexOf('PASTE_YOUR') === 0) {
+        throw new Error('Offers sheet URL not configured yet');
+      }
+      const bustUrl = OFFERS_SHEET_CSV_URL + (OFFERS_SHEET_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const response = await fetch(bustUrl, { cache: 'no-store', redirect: 'follow' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const csv = await response.text();
+      const rows = csvToRows(csv);
+      if (rows.length < 2) throw new Error('No offer row found');
+
+      const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').trim().toLowerCase());
+      const idx = {
+        active: headers.indexOf('active'),
+        text: headers.indexOf('offer text'),
+        code: headers.indexOf('discount code'),
+        percent: headers.indexOf('discount percent')
+      };
+
+      const dataRow = rows[1];
+      OFFER_ACTIVE = normalizeBoolean(idx.active >= 0 ? dataRow[idx.active] : '', false);
+      OFFER_TEXT = (idx.text >= 0 ? dataRow[idx.text] : '').trim();
+      OFFER_CODE = (idx.code >= 0 ? dataRow[idx.code] : '').trim().toUpperCase();
+      const percentNum = Number(idx.percent >= 0 ? dataRow[idx.percent] : '');
+      OFFER_PERCENT = Number.isFinite(percentNum) ? percentNum : 0;
+    } catch (e) {
+      console.warn('IZYAN: Offers sheet could not be loaded, showing "stay tuned".', e);
+      OFFER_ACTIVE = false;
+      OFFER_TEXT = '';
+      OFFER_CODE = '';
+      OFFER_PERCENT = 0;
+    }
+    renderOfferBanner();
+  }
+  loadOfferFromSheet();
 
   document.getElementById('cart-apply-discount').addEventListener('click', function () {
     const entered = document.getElementById('cart-discount-code').value.trim().toUpperCase();
     const msgEl = document.getElementById('cart-discount-msg');
-    if (!FESTIVAL_DISCOUNT_ACTIVE) {
+    if (!OFFER_ACTIVE || !OFFER_CODE) {
       msgEl.textContent = 'No active discount right now.';
       msgEl.style.color = 'var(--muted)';
       appliedDiscount = 0;
-    } else if (entered === DISCOUNT_CODE) {
-      appliedDiscount = DISCOUNT_PERCENT;
-      msgEl.textContent = `✓ ${DISCOUNT_PERCENT}% discount applied!`;
+    } else if (entered === OFFER_CODE) {
+      appliedDiscount = OFFER_PERCENT;
+      msgEl.textContent = `✓ ${OFFER_PERCENT}% discount applied!`;
       msgEl.style.color = '#4CAF50';
     } else {
       appliedDiscount = 0;
