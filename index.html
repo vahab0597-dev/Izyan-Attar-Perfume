@@ -1466,7 +1466,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   let expanded = false;
 
   function applyFilter(filter) {
-    const allCards = Array.from(document.querySelectorAll('.card'));
+    const allCards = Array.from(document.querySelectorAll('#product-grid .card'));
     const matches = allCards.filter(function (card) {
       if (filter === 'bestseller') return card.dataset.bestseller === 'yes';
       if (filter === 'all') return true;
