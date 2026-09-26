@@ -1119,12 +1119,15 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       <label class="cart-form-label" for="cart-phone">Phone Number</label>
       <input type="tel" id="cart-phone" class="cart-input" placeholder="10-digit mobile number">
 
+      <!-- Discount box: shown automatically only when the Offers sheet has an active Discount Code + Discount Percent -->
+      <div id="cart-discount-section" style="display:none;">
       <label class="cart-form-label" for="cart-discount-code">Discount Code (optional)</label>
       <div style="display:flex; gap:8px;">
         <input type="text" id="cart-discount-code" class="cart-input" placeholder="Enter code" style="text-transform:uppercase;">
         <button type="button" id="cart-apply-discount" style="background:var(--gold); color:#0D0B08; border:none; border-radius:6px; padding:0 16px; font-family:'Helvetica Neue',Arial,sans-serif; font-weight:bold; font-size:12.5px; cursor:pointer; white-space:nowrap;">Apply</button>
       </div>
       <div id="cart-discount-msg" style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:11.5px; margin-top:5px;"></div>
+      </div>
 
       <div id="upi-qr-section" style="margin-top:18px; padding-top:16px; border-top:1px dashed var(--border); text-align:center;">
         <div class="cart-form-label" style="margin-bottom:10px;">Or Pay Instantly via UPI</div>
@@ -1869,6 +1872,20 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       OFFER_PERCENT = 0;
     }
     renderOfferBanner();
+    updateDiscountSection();
+  }
+
+  // Show the discount-code box only while the Offers sheet has an active code with a percent.
+  // No code in the sheet (e.g. a free-gift offer) = box hidden. Add a code + percent later = box comes back.
+  function updateDiscountSection() {
+    const box = document.getElementById('cart-discount-section');
+    if (!box) return;
+    const hasCodeOffer = OFFER_ACTIVE && OFFER_CODE !== '' && OFFER_PERCENT > 0;
+    box.style.display = hasCodeOffer ? '' : 'none';
+    if (!hasCodeOffer && appliedDiscount !== 0) {
+      appliedDiscount = 0;
+      if (typeof renderCart === 'function') renderCart();
+    }
   }
   loadOfferFromSheet();
 
