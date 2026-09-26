@@ -969,10 +969,28 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 @media (max-width: 440px){
   .hero-actions{flex-direction:column}.hero-primary,.hero-secondary{justify-content:center}.hero-copy h1{font-size:46px}.hero-size-strip .hero-brand-lockup{display:none}.lux-filters{padding:8px 10px !important}.collection-divider span:last-child{display:none}
 }
+/* Rolling offer ticker (top of page) — shown only while the Offers sheet row is Active */
+.offer-ticker{display:none;overflow:hidden;white-space:nowrap;background:linear-gradient(90deg,#1a140c,#2a1f10,#1a140c);border-bottom:1px solid rgba(201,162,39,.45);color:#E9C766;font:600 12.5px/1 'Helvetica Neue',Arial,sans-serif;letter-spacing:.06em;padding:9px 0}
+.offer-ticker.show{display:block}
+.offer-ticker-track{display:inline-flex;gap:48px;padding-left:100%;animation:izyanTicker 28s linear infinite}
+@media (hover:hover){.offer-ticker:hover .offer-ticker-track{animation-play-state:paused}}
+.offer-ticker-item{display:inline-flex;align-items:center;gap:10px}
+.offer-ticker-item::before{content:"\2726";color:#C9A227}
+@keyframes izyanTicker{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion: reduce){.offer-ticker-track{animation:none;padding-left:16px;white-space:normal;flex-wrap:wrap;gap:12px 28px}}
+/* Free gift rows in cart */
+.cart-gift-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 0;padding:10px 12px;border:1px dashed rgba(201,162,39,.55);border-radius:8px;background:rgba(201,162,39,.08);font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#F7F3EC}
+.cart-gift-row b{color:#E9C766}
+.cart-gift-row small{display:block;color:#b9ae95;font-size:11.5px;margin-top:2px}
+.cart-gift-free{color:#7ee6ac;font-weight:700;white-space:nowrap}
+.cart-gift-hint{margin:8px 0 0;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#b9ae95}
+.cart-gift-hint b{color:#E9C766}
 </style>
 
 </head>
 <body>
+
+<div class="offer-ticker" id="offer-ticker" role="marquee" aria-label="Current offers"><div class="offer-ticker-track" id="offer-ticker-track"></div></div>
 
 <header class="lux-header">
   <div class="lux-topbar">
@@ -1620,6 +1638,50 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     return subtotal;
   }
 
+  // ---------- October 2026 free-gift offer (applied automatically in the cart) ----------
+  // Every 2 x 50ml Perfume = 1 FREE 30ml Perfume. Every 100ml Perfume = 1 FREE 30ml Perfume.
+  // Attar (6ml/12ml) total of Rs. 999 or more = 1 FREE 6ml Attar. Shop chooses the free fragrance.
+  // Runs only while the Offers sheet row is Active, and stops by itself after 31 Oct 2026.
+  const FREE_GIFT_OFFER = {
+    endsAt: new Date('2026-10-31T23:59:59+05:30').getTime(),
+    attarMinTotal: 999
+  };
+
+  function freeGiftOfferLive() {
+    return OFFER_ACTIVE && Date.now() <= FREE_GIFT_OFFER.endsAt;
+  }
+
+  function cartGiftCounts() {
+    let p50 = 0, p100 = 0, attarTotal = 0;
+    CART.forEach(function (item) {
+      if (item.size === '50ml') p50 += item.qty;
+      else if (item.size === '100ml') p100 += item.qty;
+      else if (item.size === '6ml' || item.size === '12ml') attarTotal += item.price * item.qty;
+    });
+    return { p50: p50, p100: p100, attarTotal: attarTotal };
+  }
+
+  function cartFreeGifts() {
+    if (!freeGiftOfferLive()) return [];
+    const c = cartGiftCounts();
+    const gifts = [];
+    const perfumeGifts = Math.floor(c.p50 / 2) + c.p100;
+    if (perfumeGifts > 0) gifts.push({ label: '30ml Perfume', qty: perfumeGifts });
+    if (c.attarTotal >= FREE_GIFT_OFFER.attarMinTotal) gifts.push({ label: '6ml Attar', qty: 1 });
+    return gifts;
+  }
+
+  function cartGiftHints() {
+    if (!freeGiftOfferLive()) return [];
+    const c = cartGiftCounts();
+    const hints = [];
+    if (c.p50 % 2 === 1) hints.push('Add <b>1 more 50ml Perfume</b> to get another <b>FREE 30ml Perfume</b>');
+    if (c.attarTotal > 0 && c.attarTotal < FREE_GIFT_OFFER.attarMinTotal) {
+      hints.push(`Add Attar worth <b>Rs. ${FREE_GIFT_OFFER.attarMinTotal - c.attarTotal}</b> more to get a <b>FREE 6ml Attar</b>`);
+    }
+    return hints;
+  }
+
   function updateCartBadge() {
     const count = CART.reduce(function (sum, item) { return sum + item.qty; }, 0);
     document.getElementById('cart-fab-badge').textContent = count;
@@ -1724,6 +1786,12 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
         </div>
       `;
     });
+    cartFreeGifts().forEach(function (g) {
+      html += `<div class="cart-gift-row"><div><b>🎁 FREE ${g.label}</b>${g.qty > 1 ? ' &times; ' + g.qty : ''}<small>October offer &middot; fragrance chosen by us</small></div><span class="cart-gift-free">FREE</span></div>`;
+    });
+    cartGiftHints().forEach(function (h) {
+      html += `<div class="cart-gift-hint">✨ ${h}</div>`;
+    });
     html += `<div class="cart-subtotal-row"><span>Subtotal</span><span>Rs. ${cartSubtotal()}</span></div>`;
     if (appliedDiscount > 0) {
       const discAmt = Math.round(cartSubtotal() * appliedDiscount / 100);
@@ -1768,6 +1836,12 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     CART.forEach(function (item, i) {
       lines.push(`${i + 1}. ${item.name} (${item.size}) x${item.qty} - Rs. ${item.price * item.qty}`);
     });
+    const gifts = cartFreeGifts();
+    if (gifts.length) {
+      lines.push('');
+      lines.push('FREE gifts (October offer):');
+      gifts.forEach(function (g) { lines.push(`- ${g.label} x${g.qty} - FREE`); });
+    }
     lines.push('');
     lines.push(`Subtotal: Rs. ${cartSubtotal()}`);
     let finalTotal = cartSubtotal();
@@ -1873,6 +1947,26 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     }
     renderOfferBanner();
     updateDiscountSection();
+    renderOfferTicker();
+    renderCart();
+  }
+
+  // Rolling offer strip at the very top. Parts of the Offer Text separated by "•" become separate items.
+  function renderOfferTicker() {
+    const bar = document.getElementById('offer-ticker');
+    const track = document.getElementById('offer-ticker-track');
+    if (!bar || !track) return;
+    track.textContent = '';
+    if (!(OFFER_ACTIVE && OFFER_TEXT)) { bar.classList.remove('show'); return; }
+    const parts = OFFER_TEXT.split(/\s*[•\n]\s*/).map(function (t) { return t.trim(); }).filter(Boolean);
+    const all = parts.concat(parts);
+    all.forEach(function (t) {
+      const span = document.createElement('span');
+      span.className = 'offer-ticker-item';
+      span.textContent = t;
+      track.appendChild(span);
+    });
+    bar.classList.add('show');
   }
 
   // Show the discount-code box only while the Offers sheet has an active code with a percent.
