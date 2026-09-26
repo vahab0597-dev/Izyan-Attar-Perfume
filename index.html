@@ -1640,7 +1640,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 
   // ---------- October 2026 free-gift offer (applied automatically in the cart) ----------
   // Every 2 x 50ml Perfume = 1 FREE 30ml Perfume. Every 100ml Perfume = 1 FREE 30ml Perfume.
-  // Attar (6ml/12ml) total of Rs. 999 or more = 1 FREE 6ml Attar. Shop chooses the free fragrance.
+  // Attar (6ml/12ml) total of Rs. 999 or more (999 itself counts) = 1 FREE 6ml Attar.
   // Runs only while the Offers sheet row is Active, and stops by itself after 31 Oct 2026.
   const FREE_GIFT_OFFER = {
     endsAt: new Date('2026-10-31T23:59:59+05:30').getTime(),
@@ -1675,7 +1675,10 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     if (!freeGiftOfferLive()) return [];
     const c = cartGiftCounts();
     const hints = [];
-    if (c.p50 % 2 === 1) hints.push('Add <b>1 more 50ml Perfume</b> to get another <b>FREE 30ml Perfume</b>');
+    if (c.p50 % 2 === 1) {
+      const already = Math.floor(c.p50 / 2) + c.p100 > 0;
+      hints.push(`Add <b>1 more 50ml Perfume</b> to get ${already ? 'another' : 'a'} <b>FREE 30ml Perfume</b>`);
+    }
     if (c.attarTotal > 0 && c.attarTotal < FREE_GIFT_OFFER.attarMinTotal) {
       hints.push(`Add Attar worth <b>Rs. ${FREE_GIFT_OFFER.attarMinTotal - c.attarTotal}</b> more to get a <b>FREE 6ml Attar</b>`);
     }
@@ -1787,7 +1790,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       `;
     });
     cartFreeGifts().forEach(function (g) {
-      html += `<div class="cart-gift-row"><div><b>🎁 FREE ${g.label}</b>${g.qty > 1 ? ' &times; ' + g.qty : ''}<small>October offer &middot; fragrance chosen by us</small></div><span class="cart-gift-free">FREE</span></div>`;
+      html += `<div class="cart-gift-row"><div><b>🎁 FREE ${g.label}</b>${g.qty > 1 ? ' &times; ' + g.qty : ''}<small>October Festive Offer</small></div><span class="cart-gift-free">FREE</span></div>`;
     });
     cartGiftHints().forEach(function (h) {
       html += `<div class="cart-gift-hint">✨ ${h}</div>`;
