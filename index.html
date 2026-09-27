@@ -1171,6 +1171,10 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 <script>
   const WHATSAPP_NUMBER = '919136466949';
 
+  // Online Orders: every "Order on WhatsApp" click is also saved to the owner's Google Sheet + email alert.
+  // Paste the deployed Apps Script web app URL (ends with /exec). Leave blank to switch this off.
+  const ORDERS_WEBHOOK_URL = '';
+
   // ---------- UPI payment settings (dynamic QR generated at checkout) ----------
   const UPI_ID = 'tabassum069-3@okaxis';
   const UPI_PAYEE_NAME = 'Izyan Attar and Perfumes';
@@ -1835,7 +1839,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     const address = document.getElementById('cart-address').value.trim();
     const phone = document.getElementById('cart-phone').value.trim();
 
-    let lines = ['Hi, I would like to place the following order from IZYAN Attar and Perfumes:', ''];
+    let lines = ['Hi, I would like to place the following order from IZYAN Attar and Perfumes:', `Order ID: ${currentOrderId()}`, ''];
     CART.forEach(function (item, i) {
       lines.push(`${i + 1}. ${item.name} (${item.size}) x${item.qty} - Rs. ${item.price * item.qty}`);
     });
@@ -1862,8 +1866,57 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     return lines.join('\n');
   }
 
+  // Same cart + same customer details = same Order ID, so tapping the button twice does not create two orders.
+  function cartOrderFingerprint() {
+    return JSON.stringify([
+      CART.map(function (i) { return [i.name, i.size, i.qty, i.price]; }),
+      document.getElementById('cart-name').value.trim(),
+      document.getElementById('cart-phone').value.trim(),
+      document.getElementById('cart-address').value.trim(),
+      appliedDiscount
+    ]);
+  }
+
+  function currentOrderId() {
+    const fp = cartOrderFingerprint();
+    let saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem('izyanOrderId') || 'null'); } catch (e) { saved = null; }
+    if (saved && saved.fp === fp) return saved.id;
+    const d = new Date();
+    const ymd = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase().padEnd(4, '0');
+    const id = `WEB-${ymd}-${rand}`;
+    try { sessionStorage.setItem('izyanOrderId', JSON.stringify({ fp: fp, id: id })); } catch (e) {}
+    return id;
+  }
+
+  function sendOrderToSheet(orderId) {
+    if (!ORDERS_WEBHOOK_URL) return;
+    const subtotal = cartSubtotal();
+    const order = {
+      orderId: orderId,
+      name: document.getElementById('cart-name').value.trim(),
+      phone: document.getElementById('cart-phone').value.trim(),
+      address: document.getElementById('cart-address').value.trim(),
+      items: CART.map(function (i) { return { name: i.name, size: i.size, qty: i.qty, price: i.price }; }),
+      gifts: cartFreeGifts(),
+      discountCode: appliedDiscount > 0 ? OFFER_CODE : '',
+      discount: subtotal - cartFinalTotal()
+    };
+    try {
+      // keepalive lets the request finish even while the browser switches to WhatsApp
+      fetch(ORDERS_WEBHOOK_URL, {
+        method: 'POST', mode: 'no-cors', keepalive: true,
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'order', order: order })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   document.getElementById('cart-whatsapp-btn').addEventListener('click', function () {
+    const orderId = currentOrderId();
     const msg = buildCartWhatsAppMessage();
+    sendOrderToSheet(orderId);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   });
 
