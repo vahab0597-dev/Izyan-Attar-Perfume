@@ -1132,7 +1132,18 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       <input type="text" id="cart-name" class="cart-input" placeholder="Full name">
 
       <label class="cart-form-label" for="cart-address">Delivery Address</label>
-      <textarea id="cart-address" class="cart-input" placeholder="House no., street, area, city, pincode"></textarea>
+      <textarea id="cart-address" class="cart-input" placeholder="House no., building, street, area, landmark"></textarea>
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1; min-width:0;">
+          <label class="cart-form-label" for="cart-city">City</label>
+          <input type="text" id="cart-city" class="cart-input" placeholder="e.g. Pune" autocomplete="address-level2">
+        </div>
+        <div style="flex:1; min-width:0;">
+          <label class="cart-form-label" for="cart-pincode">Pincode</label>
+          <input type="text" id="cart-pincode" class="cart-input" placeholder="6-digit pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code">
+        </div>
+      </div>
 
       <label class="cart-form-label" for="cart-phone">Phone Number</label>
       <input type="tel" id="cart-phone" class="cart-input" placeholder="10-digit mobile number">
@@ -1162,7 +1173,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17 0-.37 0-.57 0-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.48 0 1.46 1.07 2.87 1.21 3.07.15.2 2.1 3.2 5.08 4.49.7.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26C2.16 6.44 6.6 2 12.05 2c2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 012.89 6.99c0 5.45-4.44 9.88-9.88 9.88M20.46 3.48A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.16-3.48-8.41" /></svg>
         Order on WhatsApp
       </button>
-      <div class="cart-form-hint">Fill all three fields to enable ordering</div>
+      <div class="cart-form-hint" id="cart-missing-hint">Fill name, address, city, pincode and phone to enable ordering</div>
     </div>
   </div>
 </div>
@@ -1645,14 +1656,15 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   // ---------- October 2026 free-gift offer (applied automatically in the cart) ----------
   // Every 2 x 50ml Perfume = 1 FREE 30ml Perfume. Every 100ml Perfume = 1 FREE 30ml Perfume.
   // Attar (6ml/12ml) total of Rs. 999 or more (999 itself counts) = 1 FREE 6ml Attar.
-  // Runs only while the Offers sheet row is Active, and stops by itself after 31 Oct 2026.
+  // Runs only while the Offers sheet row is Active, from 1 Oct 2026, and stops by itself after 31 Oct 2026.
   const FREE_GIFT_OFFER = {
+    startsAt: new Date('2026-10-01T00:00:00+05:30').getTime(),
     endsAt: new Date('2026-10-31T23:59:59+05:30').getTime(),
     attarMinTotal: 999
   };
 
   function freeGiftOfferLive() {
-    return OFFER_ACTIVE && Date.now() <= FREE_GIFT_OFFER.endsAt;
+    return OFFER_ACTIVE && Date.now() >= FREE_GIFT_OFFER.startsAt && Date.now() <= FREE_GIFT_OFFER.endsAt;
   }
 
   function cartGiftCounts() {
@@ -1822,15 +1834,39 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     renderUpiQr();
   }
 
-  function validateCartForm() {
-    const name = document.getElementById('cart-name').value.trim();
-    const address = document.getElementById('cart-address').value.trim();
-    const phone = document.getElementById('cart-phone').value.trim();
-    const btn = document.getElementById('cart-whatsapp-btn');
-    btn.disabled = !(name && address && phone && CART.length > 0);
+  function cartField(id) { return document.getElementById(id).value.trim(); }
+
+  // Full delivery address as it is sent to WhatsApp and the Online Orders sheet
+  function cartFullAddress() {
+    return `${cartField('cart-address')}, ${cartField('cart-city')} - ${cartField('cart-pincode')}`;
   }
 
-  ['cart-name', 'cart-address', 'cart-phone'].forEach(function (id) {
+  // Everything that must be filled correctly before the order button works
+  function cartMissingFields() {
+    const missing = [];
+    if (!cartField('cart-name')) missing.push('name');
+    if (!cartField('cart-address')) missing.push('address');
+    if (!cartField('cart-city')) missing.push('city');
+    if (!/^[1-9][0-9]{5}$/.test(cartField('cart-pincode'))) missing.push('6-digit pincode');
+    if (!/^[6-9][0-9]{9}$/.test(cartField('cart-phone').replace(/\D/g, '').replace(/^(91|0)(?=[6-9][0-9]{9}$)/, ''))) missing.push('10-digit phone number');
+    return missing;
+  }
+
+  function validateCartForm() {
+    const missing = cartMissingFields();
+    const btn = document.getElementById('cart-whatsapp-btn');
+    btn.disabled = !(missing.length === 0 && CART.length > 0);
+    const hint = document.getElementById('cart-missing-hint');
+    if (hint) hint.textContent = missing.length ? 'Please enter your ' + missing.join(', ') + ' to place the order' : 'All set — tap to send your order on WhatsApp';
+  }
+
+  // Pincode: digits only
+  document.getElementById('cart-pincode').addEventListener('input', function () {
+    const clean = this.value.replace(/\D/g, '').slice(0, 6);
+    if (clean !== this.value) this.value = clean;
+  });
+
+  ['cart-name', 'cart-address', 'cart-city', 'cart-pincode', 'cart-phone'].forEach(function (id) {
     document.getElementById(id).addEventListener('input', validateCartForm);
   });
 
@@ -1856,11 +1892,13 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       const discAmt = Math.round(cartSubtotal() * appliedDiscount / 100);
       finalTotal = cartSubtotal() - discAmt;
       lines.push(`Discount (${OFFER_CODE}, ${appliedDiscount}%): - Rs. ${discAmt}`);
-      lines.push(`Total: Rs. ${finalTotal}`);
     }
+    lines.push(`Total: Rs. ${finalTotal}`);
     lines.push('');
     lines.push(`Name: ${name}`);
     lines.push(`Address: ${address}`);
+    lines.push(`City: ${cartField('cart-city')}`);
+    lines.push(`Pincode: ${cartField('cart-pincode')}`);
     lines.push(`Phone: ${phone}`);
 
     return lines.join('\n');
@@ -1872,7 +1910,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       CART.map(function (i) { return [i.name, i.size, i.qty, i.price]; }),
       document.getElementById('cart-name').value.trim(),
       document.getElementById('cart-phone').value.trim(),
-      document.getElementById('cart-address').value.trim(),
+      cartFullAddress(),
       appliedDiscount
     ]);
   }
@@ -1897,7 +1935,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       orderId: orderId,
       name: document.getElementById('cart-name').value.trim(),
       phone: document.getElementById('cart-phone').value.trim(),
-      address: document.getElementById('cart-address').value.trim(),
+      address: cartFullAddress(),
       items: CART.map(function (i) { return { name: i.name, size: i.size, qty: i.qty, price: i.price }; }),
       gifts: cartFreeGifts(),
       discountCode: appliedDiscount > 0 ? OFFER_CODE : '',
@@ -1914,6 +1952,8 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   }
 
   document.getElementById('cart-whatsapp-btn').addEventListener('click', function () {
+    validateCartForm();
+    if (this.disabled) return;
     const orderId = currentOrderId();
     const msg = buildCartWhatsAppMessage();
     sendOrderToSheet(orderId);
