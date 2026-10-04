@@ -1290,9 +1290,14 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     const obj = {};
     headers.forEach((h, i) => { obj[h] = (row[i] ?? '').trim(); });
 
-    const fallback = FALLBACK_PRODUCTS[fallbackIndex] || {};
-    const attar12 = Number(obj.attar12);
-    const perfume50 = Number(obj.perfume50);
+    // Match the fallback by product name (row order in the sheet can differ from the list in code).
+    const nameKey = String(obj.name || '').trim().toLowerCase();
+    const fallback = FALLBACK_PRODUCTS.find(p => p.name.toLowerCase() === nameKey) || {};
+    // Prices of 1000+ arrive from Google Sheets as "1,100" (thousands separator) or with "₹";
+    // strip everything except digits/decimal point before converting.
+    const toPrice = v => { const t = String(v ?? '').replace(/[^0-9.]/g, ''); return t === '' ? NaN : Number(t); };
+    const attar12 = toPrice(obj.attar12);
+    const perfume50 = toPrice(obj.perfume50);
 
     return {
       name: obj.name || fallback.name || '',
