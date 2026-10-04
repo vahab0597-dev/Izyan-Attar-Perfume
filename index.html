@@ -985,6 +985,22 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 .cart-gift-free{color:#7ee6ac;font-weight:700;white-space:nowrap}
 .cart-gift-hint{margin:8px 0 0;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#b9ae95}
 .cart-gift-hint b{color:#E9C766}
+
+/* ===== IZYAN STORIES ===== */
+.stories-wrap{max-width:1180px;margin:0 auto 10px}
+.stories-head{margin-bottom:22px}
+.stories-follow{flex:0 0 auto;padding:11px 16px;border:1px solid rgba(215,186,122,.35);border-radius:999px;color:var(--gold2,#d7ba7a);font:11px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
+.stories-follow:hover{background:rgba(215,186,122,.1)}
+.stories-row{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 18px 18px;scrollbar-width:thin}
+.story-card{position:relative;flex:0 0 250px;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:#000;border:1px solid rgba(215,186,122,.22);scroll-snap-align:start;cursor:pointer;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.story-card video{width:100%;height:100%;object-fit:cover;display:block}
+.story-card::after{content:"";position:absolute;inset:auto 0 0 0;height:42%;background:linear-gradient(transparent,rgba(0,0,0,.85));pointer-events:none}
+.story-meta{position:absolute;left:14px;right:14px;bottom:14px;z-index:2}
+.story-tag{display:inline-block;padding:4px 8px;margin-bottom:7px;border-radius:999px;background:rgba(215,186,122,.18);border:1px solid rgba(215,186,122,.4);color:#e9d3a0;font:9px Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.story-title{color:#f4ecdf;font:400 22px/1.1 Georgia,serif;margin:0 0 8px}
+.story-ig{color:#d7ba7a;font:11px Arial,sans-serif;letter-spacing:.06em;text-decoration:none}
+.story-sound{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.45);color:#fff;font-size:15px;display:grid;place-items:center;cursor:pointer}
+@media(max-width:700px){.story-card{flex-basis:62vw}.stories-follow{display:none}.stories-row{padding:4px 12px 16px;gap:12px}}
 </style>
 
 </head>
@@ -1073,6 +1089,11 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   <button type="button" id="view-list-toggle" class="view-list-btn">View Full List ▼</button>
 </div>
 
+<!-- ===== IZYAN STORIES (Instagram reels) ===== -->
+<section id="izyan-stories" class="stories-wrap" hidden>
+  <div class="lux-collection-head stories-head"><div><div class="section-kicker">WATCH THE STORIES</div><h2>IZYAN Stories.</h2><p>Every fragrance has a story. Watch our latest reels — then find the one that tells yours.</p></div><a class="stories-follow" href="https://www.instagram.com/izyan.attar/" target="_blank" rel="noopener">Follow @izyan.attar ↗</a></div>
+  <div class="stories-row" id="stories-row"></div>
+</section>
 <section class="scent-ritual"><div class="ritual-copy"><div class="section-kicker">THE IZYAN RITUAL</div><h2>Don’t buy a fragrance.<br><em>Discover your signature.</em></h2><p>Start with the mood. Choose a tester edit, explore four profiles, and let your nose decide what stays in your wardrobe.</p><div class="ritual-points"><span>01 · Choose a mood</span><span>02 · Try four profiles</span><span>03 · Keep the one people remember</span></div></div><div class="ritual-card"><div class="ritual-label">SIGNATURE FINDER</div><div class="ritual-question">What do you want your fragrance to say?</div><div class="ritual-tags"><button type="button" data-mood="fresh">Fresh &amp; effortless</button><button type="button" data-mood="bold">Bold &amp; magnetic</button><button type="button" data-mood="warm">Warm &amp; sensual</button><button type="button" data-mood="mystic">Dark &amp; mysterious</button></div><div class="ritual-result" id="ritual-result">Choose a mood to reveal a fragrance direction.</div></div></section><section id="tester-kit" class="tester-intro"><div class="section-kicker">THE TESTER EDIT</div><h2>Try four. Fall for one.</h2><p>Our signature tester experience is designed for discovery before the full-size bottle.</p></section>
 <!-- ===== TESTER COMBO KIT ===== -->
 <div class="combo-section lux-combo">
@@ -2221,5 +2242,34 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 })();
 </script>
 
+
+<script>
+/* IZYAN Stories — add a new reel here after it is posted on Instagram.
+   "live" = date/time (IST) from which the reel shows on the site, so a scheduled reveal is not spoiled early. */
+(function(){
+  var STORIES=[
+    {title:'Summer Oud',tag:'Reveal 1/10',video:'media/web/izyan-summer-oud-reel.mp4',poster:'media/web/izyan-summer-oud-reel.jpg',insta:'https://www.instagram.com/izyan.attar/',live:'2026-10-06T10:00:00+05:30'},
+    {title:'10 New Scents',tag:'Coming soon',video:'media/web/izyan-10-new-scents-teaser.mp4',poster:'media/web/izyan-10-new-scents-teaser.jpg',insta:'https://www.instagram.com/izyan.attar/',live:'2026-10-05T10:00:00+05:30'},
+    {title:'Belgium Musk',tag:'The Journey',video:'media/web/izyan-belgium-musk-reel.mp4',poster:'media/web/izyan-belgium-musk-reel.jpg',insta:'https://www.instagram.com/reel/DeBNITtFBa6/',live:'2026-10-03T10:00:00+05:30'}
+  ];
+  var wrap=document.getElementById('izyan-stories'),row=document.getElementById('stories-row');
+  if(!wrap||!row)return;
+  var now=Date.now(),list=STORIES.filter(function(s){return !s.live||Date.parse(s.live)<=now});
+  if(!list.length)return;
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  row.innerHTML=list.map(function(s){return '<div class="story-card"><video muted loop playsinline preload="none" poster="'+esc(s.poster)+'" src="'+esc(s.video)+'"></video><button type="button" class="story-sound" aria-label="Sound on/off">🔇</button><div class="story-meta">'+(s.tag?'<span class="story-tag">'+esc(s.tag)+'</span>':'')+'<h3 class="story-title">'+esc(s.title)+'</h3><a class="story-ig" href="'+esc(s.insta)+'" target="_blank" rel="noopener">Watch on Instagram ↗</a></div></div>'}).join('');
+  wrap.hidden=false;
+  var cards=[].slice.call(row.querySelectorAll('.story-card'));
+  function setSound(card,on){cards.forEach(function(c){var v=c.querySelector('video');v.muted=true;c.querySelector('.story-sound').textContent='🔇'});var v=card.querySelector('video');if(on){v.muted=false;card.querySelector('.story-sound').textContent='🔊';v.play().catch(function(){})}}
+  cards.forEach(function(card){
+    var v=card.querySelector('video');
+    card.addEventListener('click',function(e){if(e.target.closest('a'))return;setSound(card,v.muted)});
+  });
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(en){var v=en.target.querySelector('video');if(en.isIntersecting&&en.intersectionRatio>=0.6){v.play().catch(function(){})}else{v.pause();if(!v.muted){v.muted=true;en.target.querySelector('.story-sound').textContent='🔇'}}})},{threshold:[0,0.6]});
+    cards.forEach(function(c){io.observe(c)});
+  }
+})();
+</script>
 </body>
 </html>
