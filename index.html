@@ -2245,16 +2245,19 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 
 <script>
 /* IZYAN Stories — add a new reel here after it is posted on Instagram.
-   "live" = date/time (IST) from which the reel shows on the site, so a scheduled reveal is not spoiled early. */
+   "live" = date/time (IST) from which the reel shows on the site, so a scheduled reveal is not spoiled early.
+   "until" (optional) = date/time after which it is hidden, e.g. when an offer ends. Newest reels show first. */
 (function(){
   var STORIES=[
     {title:'Summer Oud',tag:'Reveal 1/10',video:'media/web/izyan-summer-oud-reel.mp4',poster:'media/web/izyan-summer-oud-reel.jpg',insta:'https://www.instagram.com/izyan.attar/',live:'2026-10-06T10:00:00+05:30'},
     {title:'10 New Scents',tag:'Coming soon',video:'media/web/izyan-10-new-scents-teaser.mp4',poster:'media/web/izyan-10-new-scents-teaser.jpg',insta:'https://www.instagram.com/izyan.attar/',live:'2026-10-05T10:00:00+05:30'},
-    {title:'Belgium Musk',tag:'The Journey',video:'media/web/izyan-belgium-musk-reel.mp4',poster:'media/web/izyan-belgium-musk-reel.jpg',insta:'https://www.instagram.com/reel/DeBNITtFBa6/',live:'2026-10-03T10:00:00+05:30'}
+    {title:'Belgium Musk',tag:'The Journey',video:'media/web/izyan-belgium-musk-reel.mp4',poster:'media/web/izyan-belgium-musk-reel.jpg',insta:'https://www.instagram.com/reel/DeBNITtFBa6/',live:'2026-10-03T10:00:00+05:30'},
+    {title:'Tester Combo Kit',tag:'Try Four',video:'media/web/izyan-tester-combo-reel.mp4',poster:'media/web/izyan-tester-combo-reel.jpg',insta:'https://www.instagram.com/reel/DeEvu_TEc_E/',live:'2026-10-04T19:00:00+05:30'},
+    {title:'October Festive Offer',tag:'Till 31 Oct',video:'media/web/izyan-october-offer-reel.mp4',poster:'media/web/izyan-october-offer-reel.jpg',insta:'https://www.instagram.com/reel/Dd9BXYLFFjc/',live:'2026-10-01T19:00:00+05:30',until:'2026-11-01T00:00:00+05:30'}
   ];
   var wrap=document.getElementById('izyan-stories'),row=document.getElementById('stories-row');
   if(!wrap||!row)return;
-  var now=Date.now(),list=STORIES.filter(function(s){return !s.live||Date.parse(s.live)<=now});
+  var now=Date.now(),list=STORIES.filter(function(s){return (!s.live||Date.parse(s.live)<=now)&&(!s.until||Date.parse(s.until)>now)}).sort(function(a,b){return Date.parse(b.live||0)-Date.parse(a.live||0)});
   if(!list.length)return;
   function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   row.innerHTML=list.map(function(s){return '<div class="story-card"><video muted loop playsinline preload="none" poster="'+esc(s.poster)+'" src="'+esc(s.video)+'"></video><button type="button" class="story-sound" aria-label="Sound on/off">🔇</button><div class="story-meta">'+(s.tag?'<span class="story-tag">'+esc(s.tag)+'</span>':'')+'<h3 class="story-title">'+esc(s.title)+'</h3><a class="story-ig" href="'+esc(s.insta)+'" target="_blank" rel="noopener">Watch on Instagram ↗</a></div></div>'}).join('');
