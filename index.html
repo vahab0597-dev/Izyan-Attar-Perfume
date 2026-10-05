@@ -1108,6 +1108,9 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   <div class="finder-row"><span class="finder-label">SCENT FAMILY</span><div class="family-bar" id="family-bar">
     <button type="button" class="fam-btn" data-fam="oud">Oud</button><button type="button" class="fam-btn" data-fam="musk">Musk</button><button type="button" class="fam-btn" data-fam="fresh">Fresh</button><button type="button" class="fam-btn" data-fam="floral">Floral</button><button type="button" class="fam-btn" data-fam="sweet">Sweet</button><button type="button" class="fam-btn" data-fam="spicy">Spicy</button>
   </div></div>
+  <div class="finder-row"><span class="finder-label">PRICE · 12ML ATTAR</span><div class="family-bar" id="price-bar">
+    <button type="button" class="fam-btn" data-price="0-500">Up to ₹500</button><button type="button" class="fam-btn" data-price="501-800">₹501 – ₹800</button><button type="button" class="fam-btn" data-price="801-99999">Above ₹800</button>
+  </div></div>
   <div class="finder-count"><span id="finder-count"></span><button type="button" id="finder-clear" hidden>Clear filters ✕</button></div>
 </div>
 <div class="finder-empty" id="finder-empty" hidden>No fragrance matches that search. Try another word, or clear the filters.</div>
@@ -1263,7 +1266,6 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     { name: 'Musk Berry Fume', image: 'images/musk-berry-fume.jpg', type: 'unisex', bestseller: true, attar12: 500, perfume50: 650, notes: 'Fruity, Musky & Sweet type' },
     { name: 'Musk Rajali', image: 'images/musk-rajali.jpg', type: 'unisex', bestseller: true, attar12: 500, perfume50: 650, notes: 'Musky, Warm & Sensual type' },
     { name: 'Musk Safi', image: 'images/musk-safi.jpg', type: 'unisex', bestseller: false, attar12: 500, perfume50: 650, notes: 'Soft, Clean & Musky type' },
-    { name: 'One Million Oud Al Dhab', image: 'images/one-million-oud-al-dhab.jpg', type: 'men', bestseller: true, attar12: 1000, perfume50: 1200, notes: 'Rich, Golden & Oudy type' },
     { name: 'Opan D.', image: 'images/opan-d.jpg', type: 'men', bestseller: true, attar12: 500, perfume50: 650, notes: 'Spicy, Oriental & Warm type' },
     { name: 'Peach Musk', image: 'images/peach-musk.jpg', type: 'women', bestseller: true, attar12: 1000, perfume50: 1200, notes: 'Fruity, Sweet & Musky type' },
     { name: 'Prince', image: 'images/prince.jpg', type: 'men', bestseller: true, attar12: 1000, perfume50: 1200, notes: 'Royal, Woody & Spicy type' },
@@ -1446,6 +1448,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     card.className = 'card';
     card.dataset.type = p.type;
     card.dataset.bestseller = p.bestseller ? 'yes' : 'no';
+    card.dataset.price = p.attar12;
 
     const badges = [];
     if (p.type && typeLabels[p.type]) badges.push(`<span class="type-badge">${typeLabels[p.type]}</span>`);
@@ -1557,17 +1560,18 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   let expanded = false;
 
   const FAMILIES = { oud: /oud/, musk: /musk/, fresh: /fresh|aquatic|citrus|cool|clean/, floral: /floral/, sweet: /sweet|fruity/, spicy: /spicy|amber/ };
-  let searchQuery = '', currentFamily = '';
+  let searchQuery = '', currentFamily = '', currentPrice = '';
 
   function applyFilter(filter) {
     const allCards = Array.from(document.querySelectorAll('#product-grid .card'));
     const q = searchQuery.trim().toLowerCase();
-    const searching = !!(q || currentFamily);
+    const searching = !!(q || currentFamily || currentPrice);
     const matches = allCards.filter(function (card) {
       if (filter === 'bestseller' && card.dataset.bestseller !== 'yes') return false;
       if ((filter === 'men' || filter === 'women' || filter === 'unisex') && card.dataset.type !== filter) return false;
       const nameEl = card.querySelector('h3'), notesEl = card.querySelector('.card-notes');
       const hay = ((nameEl ? nameEl.textContent : '') + ' ' + (notesEl ? notesEl.textContent : '')).toLowerCase();
+      if (currentPrice) { const r = currentPrice.split('-'), pr = Number(card.dataset.price); if (!(pr >= Number(r[0]) && pr <= Number(r[1]))) return false; }
       if (currentFamily && !FAMILIES[currentFamily].test(hay)) return false;
       if (q && q.split(/\s+/).some(function (w) { return hay.indexOf(w) === -1; })) return false;
       return true;
@@ -1609,17 +1613,26 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   document.getElementById('product-search').addEventListener('input', function (e) {
     searchQuery = e.target.value; expanded = false; applyFilter(currentFilter);
   });
-  document.querySelectorAll('.fam-btn').forEach(function (btn) {
+  document.querySelectorAll('#family-bar .fam-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       const on = btn.classList.contains('active');
-      document.querySelectorAll('.fam-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#family-bar .fam-btn').forEach(b => b.classList.remove('active'));
       currentFamily = on ? '' : btn.dataset.fam;
       if (!on) btn.classList.add('active');
       expanded = false; applyFilter(currentFilter);
     });
   });
+  document.querySelectorAll('#price-bar .fam-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const on = btn.classList.contains('active');
+      document.querySelectorAll('#price-bar .fam-btn').forEach(b => b.classList.remove('active'));
+      currentPrice = on ? '' : btn.dataset.price;
+      if (!on) btn.classList.add('active');
+      expanded = false; applyFilter(currentFilter);
+    });
+  });
   document.getElementById('finder-clear').addEventListener('click', function () {
-    searchQuery = ''; currentFamily = ''; currentFilter = 'all'; expanded = false;
+    searchQuery = ''; currentFamily = ''; currentPrice = ''; currentFilter = 'all'; expanded = false;
     document.getElementById('product-search').value = '';
     document.querySelectorAll('.fam-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
