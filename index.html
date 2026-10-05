@@ -845,6 +845,27 @@
   }
 </style>
 <style>#catalog-status{opacity:.92}</style>
+<style>
+.finder{max-width:1180px;margin:0 auto;padding:0 18px}
+.finder-search{position:relative;margin:4px 0 12px}
+.finder-ico{position:absolute;left:18px;top:50%;transform:translateY(-52%);color:#cdb687;font-size:22px;pointer-events:none}
+#product-search{width:100%;box-sizing:border-box;padding:16px 20px 16px 52px;border-radius:999px;border:1px solid rgba(215,186,122,.28);background:rgba(255,255,255,.035);color:#f3e7cc;font:15px Arial,sans-serif;letter-spacing:.02em;outline:none}
+#product-search::placeholder{color:#8d8376}
+#product-search:focus{border-color:rgba(215,186,122,.6);box-shadow:0 0 0 3px rgba(215,186,122,.08)}
+.finder .lux-filters{padding:4px 0 !important;margin:0 0 6px;justify-content:flex-start}
+.finder-ico{font-size:26px !important}
+.finder-row{display:flex;align-items:center;gap:12px;padding:6px 0 4px}
+.finder-label{font:9px Arial,sans-serif;letter-spacing:.2em;color:#8d8376;white-space:nowrap}
+.family-bar{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+.family-bar::-webkit-scrollbar{display:none}
+.fam-btn{flex:0 0 auto;border:1px solid rgba(215,186,122,.16);background:transparent;border-radius:999px;padding:9px 16px;color:#a29787;font:10px Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;cursor:pointer}
+.fam-btn.active{background:rgba(215,186,122,.11);border-color:rgba(215,186,122,.35);color:#eadab8}
+.finder-count{display:flex;justify-content:space-between;align-items:center;min-height:28px;padding:6px 2px 10px;font:12px Arial,sans-serif;color:#8d8376}
+#finder-clear{background:none;border:0;color:#cdb687;font:12px Arial,sans-serif;cursor:pointer;text-decoration:underline}
+.finder-empty{max-width:1180px;margin:10px auto 30px;padding:30px 18px;text-align:center;color:#a29787;font:14px Arial,sans-serif}
+@media(max-width:640px){.finder{padding:0 12px}.finder-row{flex-direction:column;align-items:flex-start;gap:6px}.family-bar{max-width:100%}}
+</style>
+
 
 <style>
 :root{
@@ -1075,13 +1096,21 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 <section id="new-arrivals" class="lux-collection-head" style="margin-top:20px"><div><div class="section-kicker">JUST IN</div><h2>New Arrivals.</h2><p>The freshest additions to the Izyan wardrobe — added straight from our latest drop.</p></div></section>
 <div class="grid" id="new-arrivals-grid"></div>
 
-<section id="collection" class="lux-collection-head"><div><div class="section-kicker">THE COLLECTION</div><h2>Find the scent that feels like you.</h2><p>Move from fresh daytime clarity to deep oud nights — your fragrance wardrobe starts here.</p></div><div class="collection-seal">EST.<br><span>IZYAN</span><br>FRAGRANCE HOUSE</div></section><div class="filter-bar lux-filters" id="filter-bar">
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="bestseller">Best Sellers</button>
-  <button class="filter-btn" data-filter="men">Men</button>
-  <button class="filter-btn" data-filter="women">Women</button>
-  <button class="filter-btn" data-filter="unisex">Unisex</button>
+<section id="collection" class="lux-collection-head"><div><div class="section-kicker">THE COLLECTION</div><h2>Find the scent that feels like you.</h2><p>Move from fresh daytime clarity to deep oud nights — your fragrance wardrobe starts here.</p></div><div class="collection-seal">EST.<br><span>IZYAN</span><br>FRAGRANCE HOUSE</div></section><div class="finder" id="finder">
+  <div class="finder-search"><span class="finder-ico">⌕</span><input type="search" id="product-search" placeholder="Search a fragrance — try Oud, Musk, Fresh…" autocomplete="off" aria-label="Search fragrances"></div>
+  <div class="filter-bar lux-filters" id="filter-bar">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="bestseller">Best Sellers</button>
+    <button class="filter-btn" data-filter="men">Men</button>
+    <button class="filter-btn" data-filter="women">Women</button>
+    <button class="filter-btn" data-filter="unisex">Unisex</button>
+  </div>
+  <div class="finder-row"><span class="finder-label">SCENT FAMILY</span><div class="family-bar" id="family-bar">
+    <button type="button" class="fam-btn" data-fam="oud">Oud</button><button type="button" class="fam-btn" data-fam="musk">Musk</button><button type="button" class="fam-btn" data-fam="fresh">Fresh</button><button type="button" class="fam-btn" data-fam="floral">Floral</button><button type="button" class="fam-btn" data-fam="sweet">Sweet</button><button type="button" class="fam-btn" data-fam="spicy">Spicy</button>
+  </div></div>
+  <div class="finder-count"><span id="finder-count"></span><button type="button" id="finder-clear" hidden>Clear filters ✕</button></div>
 </div>
+<div class="finder-empty" id="finder-empty" hidden>No fragrance matches that search. Try another word, or clear the filters.</div>
 
 <div class="grid" id="product-grid"></div>
 
@@ -1527,26 +1556,41 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   const PREVIEW_COUNT = 5;
   let expanded = false;
 
+  const FAMILIES = { oud: /oud/, musk: /musk/, fresh: /fresh|aquatic|citrus|cool|clean/, floral: /floral/, sweet: /sweet|fruity/, spicy: /spicy|amber/ };
+  let searchQuery = '', currentFamily = '';
+
   function applyFilter(filter) {
     const allCards = Array.from(document.querySelectorAll('#product-grid .card'));
+    const q = searchQuery.trim().toLowerCase();
+    const searching = !!(q || currentFamily);
     const matches = allCards.filter(function (card) {
-      if (filter === 'bestseller') return card.dataset.bestseller === 'yes';
-      if (filter === 'all') return true;
-      return card.dataset.type === filter;
+      if (filter === 'bestseller' && card.dataset.bestseller !== 'yes') return false;
+      if ((filter === 'men' || filter === 'women' || filter === 'unisex') && card.dataset.type !== filter) return false;
+      const nameEl = card.querySelector('h3'), notesEl = card.querySelector('.card-notes');
+      const hay = ((nameEl ? nameEl.textContent : '') + ' ' + (notesEl ? notesEl.textContent : '')).toLowerCase();
+      if (currentFamily && !FAMILIES[currentFamily].test(hay)) return false;
+      if (q && q.split(/\s+/).some(function (w) { return hay.indexOf(w) === -1; })) return false;
+      return true;
     });
 
     allCards.forEach(card => card.style.display = 'none');
 
-    const visibleCount = expanded ? matches.length : Math.min(PREVIEW_COUNT, matches.length);
+    const visibleCount = (expanded || searching) ? matches.length : Math.min(PREVIEW_COUNT, matches.length);
     matches.slice(0, visibleCount).forEach(card => card.style.display = 'flex');
 
     const toggleBtn = document.getElementById('view-list-toggle');
-    if (matches.length > PREVIEW_COUNT) {
+    if (!searching && matches.length > PREVIEW_COUNT) {
       toggleBtn.style.display = 'inline-block';
       toggleBtn.textContent = expanded ? 'Show Less ▲' : `View Full List (${matches.length}) ▼`;
     } else {
       toggleBtn.style.display = 'none';
     }
+
+    const cnt = document.getElementById('finder-count'), clr = document.getElementById('finder-clear'), emp = document.getElementById('finder-empty');
+    const active = searching || filter !== 'all';
+    if (cnt) cnt.textContent = active ? `Showing ${matches.length} of ${allCards.length} fragrances` : `${allCards.length} fragrances`;
+    if (clr) clr.hidden = !active;
+    if (emp) emp.hidden = matches.length > 0;
   }
 
   let currentFilter = 'all';
@@ -1560,6 +1604,26 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       applyFilter(currentFilter);
       document.getElementById('product-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  });
+
+  document.getElementById('product-search').addEventListener('input', function (e) {
+    searchQuery = e.target.value; expanded = false; applyFilter(currentFilter);
+  });
+  document.querySelectorAll('.fam-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const on = btn.classList.contains('active');
+      document.querySelectorAll('.fam-btn').forEach(b => b.classList.remove('active'));
+      currentFamily = on ? '' : btn.dataset.fam;
+      if (!on) btn.classList.add('active');
+      expanded = false; applyFilter(currentFilter);
+    });
+  });
+  document.getElementById('finder-clear').addEventListener('click', function () {
+    searchQuery = ''; currentFamily = ''; currentFilter = 'all'; expanded = false;
+    document.getElementById('product-search').value = '';
+    document.querySelectorAll('.fam-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    applyFilter(currentFilter);
   });
 
   document.getElementById('view-list-toggle').addEventListener('click', function () {
