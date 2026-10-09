@@ -847,6 +847,20 @@
     margin-bottom: 6px;
     font-family: 'Georgia', serif;
   }
+/* ---------- Instagram comment pop-up (moves around the screen) ---------- */
+.igt{position:fixed;left:0;top:0;z-index:450;width:min(320px,calc(100vw - 32px));opacity:0;pointer-events:none;transition:transform 1.8s cubic-bezier(.45,.05,.25,1),opacity .45s ease;will-change:transform,opacity}
+.igt.show{opacity:1;pointer-events:auto}
+.igt.instant{transition:opacity .45s ease}
+.igt-in{position:relative;display:flex;gap:11px;align-items:flex-start;background:rgba(18,14,10,.95);border:1px solid rgba(215,186,122,.38);border-radius:16px;padding:12px 30px 12px 12px;box-shadow:0 18px 44px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:igtFloat 4.2s ease-in-out infinite}
+@keyframes igtFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.igt-av{flex:none;width:38px;height:38px;border-radius:50%;padding:2px;background:linear-gradient(45deg,#f9a825,#e91e63 55%,#8e24aa)}
+.igt-av span{display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center;background:#1a140e;color:#e9d2a0;font:600 15px/1 'Helvetica Neue',Arial,sans-serif;border:2px solid #120e0a}
+.igt-bd{min-width:0;font-family:'Helvetica Neue',Arial,sans-serif}
+.igt-u{font-size:12.5px;color:#f3e7cf;font-weight:600;line-height:1.3}.igt-u small{font-weight:400;color:#a99a80}
+.igt-t{margin-top:3px;font-size:12.5px;line-height:1.42;color:#e8dcc5;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.igt-l{display:inline-block;margin-top:6px;font-size:11.5px;color:#d7ba7a;text-decoration:none;letter-spacing:.02em}.igt-l:hover{text-decoration:underline}
+.igt-x{position:absolute;top:6px;right:6px;width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:#a99a80;font-size:14px;line-height:24px;cursor:pointer}.igt-x:hover{color:#f3e7cf;background:rgba(255,255,255,.06)}
+@media (prefers-reduced-motion:reduce){.igt{transition:opacity .3s ease}.igt-in{animation:none}}
 </style>
 <style>#catalog-status{opacity:.92}</style>
 <style>
@@ -2391,6 +2405,81 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
     var io=new IntersectionObserver(function(es){es.forEach(function(en){var v=en.target.querySelector('video');if(en.isIntersecting&&en.intersectionRatio>=0.6){v.play().catch(function(){})}else{v.pause();if(!v.muted){v.muted=true;en.target.querySelector('.story-sound').textContent='🔇'}}})},{threshold:[0,0.6]});
     cards.forEach(function(c){io.observe(c)});
   }
+})();
+</script>
+<div class="igt" id="igt" aria-label="Customer comment from Instagram"><div class="igt-in"><div class="igt-av"><span id="igt-av"></span></div><div class="igt-bd"><div class="igt-u"><span id="igt-u"></span> <small id="igt-on"></small></div><div class="igt-t" id="igt-t"></div><a class="igt-l" id="igt-l" href="https://www.instagram.com/izyan.attar/" target="_blank" rel="noopener">View on Instagram ↗</a></div><button type="button" class="igt-x" id="igt-x" aria-label="Close">✕</button></div></div>
+<script>
+(function(){
+  // Real customer comments from Instagram — add new ones at the top of this list.
+  // link: the Instagram post where the comment was left (https://www.instagram.com/... only)
+  const IG_COMMENTS = [
+    { user: 'kshitijmanu', on: 'Dunhill Icon', link: 'https://www.instagram.com/izyan.attar/',
+      text: 'Thanks a lot for brilliant products, I was initially having doubts on fragrance and how long it lasts but It’s amazing and all products which Iam using are just out of this world …Keep up the good work' }
+  ];
+  const el = document.getElementById('igt');
+  if (!el || !IG_COMMENTS.length) return;
+  try { if (sessionStorage.getItem('izyan_igt_closed') === '1') return; } catch (e) {}
+
+  const $ = function (id) { return document.getElementById(id); };
+  const safeUrl = function (u) { return /^https:\/\/(www\.)?instagram\.com\//i.test(String(u || '')) ? u : 'https://www.instagram.com/izyan.attar/'; };
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const AVOID = '#cart-fab, .add-cart-btn, .combo-add-btn, #product-search, #cart-whatsapp-btn';
+  const MARGIN = 16, GAP = 10, MOVE_EVERY = 5200;
+  let idx = 0, slot = -1, timer = null, closed = false, placed = false;
+
+  function fill(c) {
+    const u = String(c.user || '').replace(/^@/, '');
+    $('igt-av').textContent = (u[0] || 'I').toUpperCase();
+    $('igt-u').textContent = '@' + u;
+    $('igt-on').textContent = c.on ? '· on ' + c.on : '';
+    $('igt-t').textContent = c.text || '';
+    $('igt-l').href = safeUrl(c.link);
+  }
+  function slots(w, h) {
+    const vw = window.innerWidth, vh = window.innerHeight, L = MARGIN, R = vw - w - MARGIN, top = 84, bottom = vh - h - 96;
+    return [
+      [L, bottom], [R, top], [L, Math.round(vh * 0.42 - h / 2)], [R, Math.round(vh * 0.58 - h / 2)], [L, top], [R, bottom]
+    ].map(function (p) { return [Math.max(MARGIN, Math.min(p[0], vw - w - MARGIN)), Math.max(MARGIN, Math.min(p[1], vh - h - MARGIN))]; });
+  }
+  function blocked(x, y, w, h) {
+    const nodes = document.querySelectorAll(AVOID);
+    for (let i = 0; i < nodes.length; i++) {
+      const r = nodes[i].getBoundingClientRect();
+      if (!r.width || !r.height || r.bottom < 0 || r.top > window.innerHeight) continue;
+      if (x < r.right + GAP && x + w > r.left - GAP && y < r.bottom + GAP && y + h > r.top - GAP) return true;
+    }
+    return false;
+  }
+  function busy() {
+    const ov = document.getElementById('cart-overlay');
+    if (ov && ov.classList.contains('open')) return true;
+    const a = document.activeElement;
+    return !!(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT'));
+  }
+  function step() {
+    if (closed) return;
+    if (document.hidden || busy()) { el.classList.remove('show'); return; }
+    if (IG_COMMENTS.length > 1 && placed) { idx = (idx + 1) % IG_COMMENTS.length; fill(IG_COMMENTS[idx]); }
+    const w = el.offsetWidth, h = el.offsetHeight, s = slots(w, h);
+    let pick = -1;
+    if (reduce) { pick = blocked(s[0][0], s[0][1], w, h) ? -1 : 0; }
+    else {
+      for (let k = 1; k <= s.length; k++) { const j = (slot + k) % s.length; if (!blocked(s[j][0], s[j][1], w, h)) { pick = j; break; } }
+    }
+    if (pick < 0) { el.classList.remove('show'); return; }
+    if (!placed || reduce) { el.classList.add('instant'); }
+    el.style.transform = 'translate(' + s[pick][0] + 'px,' + s[pick][1] + 'px)';
+    slot = pick;
+    if (!placed || reduce) { void el.offsetWidth; el.classList.remove('instant'); placed = true; }
+    el.classList.add('show');
+  }
+  $('igt-x').addEventListener('click', function () {
+    closed = true; el.classList.remove('show'); clearInterval(timer);
+    try { sessionStorage.setItem('izyan_igt_closed', '1'); } catch (e) {}
+  });
+  document.addEventListener('focusin', function () { if (busy()) el.classList.remove('show'); });
+  fill(IG_COMMENTS[0]);
+  setTimeout(function () { step(); timer = setInterval(step, MOVE_EVERY); }, 4000);
 })();
 </script>
 </body>
