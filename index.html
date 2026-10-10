@@ -861,6 +861,28 @@
 .igt-l{display:inline-block;margin-top:6px;font-size:11.5px;color:#d7ba7a;text-decoration:none;letter-spacing:.02em}.igt-l:hover{text-decoration:underline}
 .igt-x{position:absolute;top:6px;right:6px;width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:#a99a80;font-size:14px;line-height:24px;cursor:pointer}.igt-x:hover{color:#f3e7cf;background:rgba(255,255,255,.06)}
 @media (prefers-reduced-motion:reduce){.igt{transition:opacity .3s ease}.igt-in{animation:none}}
+/* ---------- Instagram comments: header glow icon + card (Design 1) ---------- */
+.igb{position:relative;width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:0;padding:0;background:#120d08;margin-right:12px;vertical-align:middle;isolation:isolate;animation:igbGlow 2.6s ease-in-out infinite;flex:none}
+.igb::before{content:'';position:absolute;inset:-2px;border-radius:50%;background:conic-gradient(from 0deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5,#feda75);z-index:-2;animation:igbSpin 4s linear infinite}
+.igb::after{content:'';position:absolute;inset:0;border-radius:50%;background:#120d08;z-index:-1}
+.igb svg{width:19px;height:19px;color:#f3e7cc}
+.igb i{position:absolute;top:-4px;right:-4px;background:#d62976;color:#fff;font:700 10px/16px 'Helvetica Neue',Arial,sans-serif;min-width:16px;padding:0 4px;border-radius:8px;text-align:center;font-style:normal}
+@keyframes igbGlow{0%,100%{box-shadow:0 0 8px 1px rgba(214,41,118,.55),0 0 16px 2px rgba(254,218,117,.25)}50%{box-shadow:0 0 18px 5px rgba(214,41,118,.6),0 0 30px 8px rgba(254,218,117,.35)}}
+@keyframes igbSpin{to{transform:rotate(360deg)}}
+.igm{position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;padding:16px}
+.igm.open{display:flex;animation:igmIn .25s ease}
+@keyframes igmIn{from{opacity:0}to{opacity:1}}
+.igm-card{position:relative;width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#120d08;border:1px solid rgba(215,186,122,.35);border-radius:22px;padding:30px 26px 22px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.65)}
+.igm-k{font:600 10px/1.4 'Helvetica Neue',Arial,sans-serif;letter-spacing:.26em;color:#cdb687}
+.igm-q{font:italic 70px/0.6 Georgia,serif;color:#e9c766;margin:22px 0 4px;height:34px}
+.igm-t{font:italic clamp(17px,4.6vw,22px)/1.45 Georgia,'Cormorant Garamond',serif;color:#f3e7cc;margin:10px 0 18px}
+.igm-u{font:700 14px 'Helvetica Neue',Arial,sans-serif;color:#eadab8}.igm-on{font:12px 'Helvetica Neue',Arial,sans-serif;color:#8d8376;margin-top:3px}
+.igm-l{display:inline-block;margin-top:14px;font:12.5px 'Helvetica Neue',Arial,sans-serif;color:#e9c766;text-decoration:none}.igm-l:hover{text-decoration:underline}
+.igm-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px}
+.igm-nav button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(215,186,122,.35);background:transparent;color:#e9c766;font:16px Arial;cursor:pointer}
+.igm-dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4a3d28;margin:0 3px}.igm-dots span.on{background:#e9c766}
+.igm-x{position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#cdb687;font:18px Arial;cursor:pointer}.igm-x:hover{background:rgba(255,255,255,.06)}
+@media (prefers-reduced-motion:reduce){.igb,.igb::before{animation:none}.igm.open{animation:none}}
 </style>
 <style>#catalog-status{opacity:.92}</style>
 <style>
@@ -2412,7 +2434,7 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 (function(){
   // Real customer comments from Instagram — add new ones at the top of this list.
   // link: the Instagram post where the comment was left (https://www.instagram.com/... only)
-  const IG_COMMENTS = [
+  const IG_COMMENTS = window.IZYAN_IG_COMMENTS = [
     { user: 'kshitijmanu', on: 'Dunhill Icon', link: 'https://www.instagram.com/izyan.attar/',
       text: 'Thanks a lot for brilliant products, I was initially having doubts on fragrance and how long it lasts but It’s amazing and all products which Iam using are just out of this world …Keep up the good work' }
   ];
@@ -2453,6 +2475,8 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   function busy() {
     const ov = document.getElementById('cart-overlay');
     if (ov && ov.classList.contains('open')) return true;
+    const im = document.getElementById('igm');
+    if (im && im.classList.contains('open')) return true;
     const a = document.activeElement;
     return !!(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT'));
   }
@@ -2480,6 +2504,46 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   document.addEventListener('focusin', function () { if (busy()) el.classList.remove('show'); });
   fill(IG_COMMENTS[0]);
   setTimeout(function () { step(); timer = setInterval(step, MOVE_EVERY); }, 4000);
+})();
+</script>
+<div class="igm" id="igm" role="dialog" aria-modal="true" aria-label="Customer comments from Instagram"><div class="igm-card"><button type="button" class="igm-x" id="igm-x" aria-label="Close">✕</button><div class="igm-k">LOVED ON INSTAGRAM</div><div class="igm-q">“</div><div class="igm-t" id="igm-t"></div><div class="igm-u" id="igm-u"></div><div class="igm-on" id="igm-on"></div><a class="igm-l" id="igm-l" href="https://www.instagram.com/izyan.attar/" target="_blank" rel="noopener">View on Instagram ↗</a><div class="igm-nav" id="igm-nav"><button type="button" id="igm-prev" aria-label="Previous comment">‹</button><div class="igm-dots" id="igm-dots"></div><button type="button" id="igm-next" aria-label="Next comment">›</button></div></div></div>
+<script>
+(function(){
+  const list = window.IZYAN_IG_COMMENTS || [];
+  const anchor = document.getElementById('header-whatsapp'), modal = document.getElementById('igm');
+  if (!list.length || !anchor || !modal) return;
+  const $ = function (id) { return document.getElementById(id); };
+  const safeUrl = function (u) { return /^https:\/\/(www\.)?instagram\.com\//i.test(String(u || '')) ? u : 'https://www.instagram.com/izyan.attar/'; };
+  const btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'igb'; btn.setAttribute('aria-label', 'Read customer comments from Instagram');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg><i></i>';
+  btn.querySelector('i').textContent = list.length;
+  anchor.parentNode.insertBefore(btn, anchor);
+  let i = 0, lastFocus = null;
+  function show(n) {
+    i = (n + list.length) % list.length;
+    const c = list[i], u = String(c.user || '').replace(/^@/, '');
+    $('igm-t').textContent = c.text || '';
+    $('igm-u').textContent = '@' + u;
+    $('igm-on').textContent = c.on ? 'on ' + c.on : '';
+    $('igm-l').href = safeUrl(c.link);
+    $('igm-dots').innerHTML = list.map(function (_, k) { return '<span' + (k === i ? ' class="on"' : '') + '></span>'; }).join('');
+  }
+  function open() { lastFocus = document.activeElement; show(i); modal.classList.add('open'); document.body.style.overflow = 'hidden'; $('igm-x').focus(); }
+  function close() { modal.classList.remove('open'); document.body.style.overflow = ''; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  $('igm-nav').style.display = list.length > 1 ? '' : 'none';
+  btn.addEventListener('click', open);
+  $('igm-x').addEventListener('click', close);
+  $('igm-prev').addEventListener('click', function () { show(i - 1); });
+  $('igm-next').addEventListener('click', function () { show(i + 1); });
+  modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+  document.addEventListener('keydown', function (e) {
+    if (!modal.classList.contains('open')) return;
+    if (e.key === 'Escape') close(); else if (e.key === 'ArrowLeft') show(i - 1); else if (e.key === 'ArrowRight') show(i + 1);
+  });
+  let sx = null;
+  modal.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, { passive: true });
+  modal.addEventListener('touchend', function (e) { if (sx === null || list.length < 2) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 45) show(i + (dx < 0 ? 1 : -1)); sx = null; });
 })();
 </script>
 </body>
