@@ -869,6 +869,19 @@
 .igm-dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4a3d28;margin:0 3px}.igm-dots span.on{background:#e9c766}
 .igm-x{position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#cdb687;font:18px Arial;cursor:pointer}.igm-x:hover{background:rgba(255,255,255,.06)}
 @media (prefers-reduced-motion:reduce){.igb,.igb::before{animation:none}.igm.open{animation:none}}
+
+/* funnel filter toggle inside the search box */
+#product-search{padding-right:64px !important}
+.finder-funnel{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(215,186,122,.28);background:rgba(215,186,122,.06);color:#d7ba7a;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background .2s,border-color .2s}
+.finder-funnel svg{width:19px;height:19px}
+.finder-funnel:hover,.finder-funnel[aria-expanded="true"]{background:rgba(215,186,122,.16);border-color:rgba(215,186,122,.55);color:#f3e7cc}
+.finder-funnel b{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#d7ba7a;color:#17100a;font:700 10.5px/18px Arial,sans-serif;text-align:center}
+.finder-panel{border:1px solid rgba(215,186,122,.18);border-radius:18px;padding:8px 14px 6px;margin:0 0 6px;background:rgba(255,255,255,.02);animation:finderIn .22s ease}
+.finder-panel[hidden]{display:none}
+.finder-panel .lux-filters{padding:0 !important;margin:0}
+@keyframes finderIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media(max-width:640px){.finder-panel{padding:6px 10px 4px}}
+@media (prefers-reduced-motion:reduce){.finder-panel{animation:none}}
 </style>
 <style>#catalog-status{opacity:.92}</style>
 <style>
@@ -1123,20 +1136,23 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
 <div class="grid" id="new-arrivals-grid"></div>
 
 <section id="collection" class="lux-collection-head"><div><div class="section-kicker">THE COLLECTION</div><h2>Find the scent that feels like you.</h2><p>Move from fresh daytime clarity to deep oud nights — your fragrance wardrobe starts here.</p></div><div class="collection-seal">EST.<br><span>IZYAN</span><br>FRAGRANCE HOUSE</div></section><div class="finder" id="finder">
-  <div class="finder-search"><span class="finder-ico">⌕</span><input type="search" id="product-search" placeholder="Search a fragrance — try Oud, Musk, Fresh…" autocomplete="off" aria-label="Search fragrances"></div>
+  <div class="finder-search"><span class="finder-ico">⌕</span><input type="search" id="product-search" placeholder="Search a fragrance — try Oud, Musk, Fresh…" autocomplete="off" aria-label="Search fragrances"><button type="button" class="finder-funnel" id="finder-funnel" aria-expanded="false" aria-controls="finder-panel" aria-label="Show filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5h17l-6.6 7.6v5.6l-3.8 1.9v-7.5z"/></svg><b id="finder-badge" hidden></b></button></div>
+  <div class="finder-panel" id="finder-panel" hidden>
+  <div class="finder-row"><span class="finder-label">SHOW</span>
   <div class="filter-bar lux-filters" id="filter-bar">
     <button class="filter-btn active" data-filter="all">All</button>
     <button class="filter-btn" data-filter="bestseller">Best Sellers</button>
     <button class="filter-btn" data-filter="men">Men</button>
     <button class="filter-btn" data-filter="women">Women</button>
     <button class="filter-btn" data-filter="unisex">Unisex</button>
-  </div>
+  </div></div>
   <div class="finder-row"><span class="finder-label">SCENT FAMILY</span><div class="family-bar" id="family-bar">
     <button type="button" class="fam-btn" data-fam="oud">Oud</button><button type="button" class="fam-btn" data-fam="musk">Musk</button><button type="button" class="fam-btn" data-fam="fresh">Fresh</button><button type="button" class="fam-btn" data-fam="floral">Floral</button><button type="button" class="fam-btn" data-fam="sweet">Sweet</button><button type="button" class="fam-btn" data-fam="spicy">Spicy</button>
   </div></div>
   <div class="finder-row"><span class="finder-label">PRICE · 12ML ATTAR</span><div class="family-bar" id="price-bar">
     <button type="button" class="fam-btn" data-price="0-500">Up to ₹500</button><button type="button" class="fam-btn" data-price="501-800">₹501 – ₹800</button><button type="button" class="fam-btn" data-price="801-99999">Above ₹800</button>
   </div></div>
+  </div>
   <div class="finder-count"><span id="finder-count"></span><button type="button" id="finder-clear" hidden>Clear filters ✕</button></div>
 </div>
 <div class="finder-empty" id="finder-empty" hidden>No fragrance matches that search. Try another word, or clear the filters.</div>
@@ -2461,6 +2477,16 @@ window.IZYAN_IG_COMMENTS = [
   let sx = null;
   modal.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, { passive: true });
   modal.addEventListener('touchend', function (e) { if (sx === null || list.length < 2) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 45) show(i + (dx < 0 ? 1 : -1)); sx = null; });
+})();
+</script>
+<script>
+(function(){
+  const btn=document.getElementById('finder-funnel'),panel=document.getElementById('finder-panel'),badge=document.getElementById('finder-badge');
+  if(!btn||!panel||!badge)return;
+  btn.addEventListener('click',function(){const open=panel.hidden;panel.hidden=!open;btn.setAttribute('aria-expanded',String(open));btn.setAttribute('aria-label',open?'Hide filters':'Show filters')});
+  function count(){let n=0;const g=document.querySelector('#filter-bar .filter-btn.active');if(g&&g.dataset.filter!=='all')n++;n+=document.querySelectorAll('#family-bar .fam-btn.active,#price-bar .fam-btn.active').length;badge.textContent=n;badge.hidden=!n}
+  document.addEventListener('click',function(e){if(e.target.closest('.filter-btn,.fam-btn,#finder-clear'))setTimeout(count,0)});
+  count();
 })();
 </script>
 </body>
