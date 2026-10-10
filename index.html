@@ -882,6 +882,44 @@
 @keyframes finderIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @media(max-width:640px){.finder-panel{padding:6px 10px 4px}}
 @media (prefers-reduced-motion:reduce){.finder-panel{animation:none}}
+/* ---------- Product detail card ---------- */
+#product-grid .card-img,#new-arrivals-grid .card-img,#product-grid .card h3,#new-arrivals-grid .card h3{cursor:pointer}
+.card-view{display:block;margin:2px auto 0;background:none;border:0;color:#cdb687;font:11px Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:6px 8px}
+.card-view:hover{color:#f3e7cc}
+.pd{position:fixed;inset:0;z-index:960;background:rgba(0,0,0,.76);display:none;align-items:center;justify-content:center;padding:16px}
+.pd.open{display:flex;animation:pdIn .22s ease}
+@keyframes pdIn{from{opacity:0}to{opacity:1}}
+.pd-card{position:relative;width:min(860px,100%);max-height:calc(100vh - 32px);overflow:auto;background:linear-gradient(180deg,#1a1510,#0f0c09);border:1px solid rgba(215,186,122,.3);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.65);color:#f3e7cc}
+.pd-x{position:absolute;top:10px;right:10px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid rgba(215,186,122,.3);background:rgba(10,8,6,.7);color:#e9d2a0;font:16px Arial;cursor:pointer}
+.pd-main{display:grid;grid-template-columns:1fr 1fr}
+.pd-img{position:relative;min-height:360px;background:#000}
+.pd-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pd-new{position:absolute;top:14px;left:14px;background:#d7ba7a;color:#17100a;font:700 10px Arial,sans-serif;letter-spacing:.2em;padding:5px 10px;border-radius:6px}
+.pd-info{padding:30px 28px 24px}
+.pd-kicker,.pd-label{font:600 9.5px Arial,sans-serif;letter-spacing:.26em;color:#a99a80}
+.pd-name{font:400 34px/1.1 Georgia,'Cormorant Garamond',serif;margin:10px 0 8px;color:#f6ead2}
+.pd-notes{font:italic 15px/1.5 Georgia,serif;color:#cdb998;margin:0 0 12px}
+.pd-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.pd-tags span{border:1px solid rgba(215,186,122,.25);border-radius:999px;padding:5px 11px;font:11px Arial,sans-serif;color:#d9c9a8}
+.pd-toggle{display:flex;gap:6px;margin:10px 0 12px}
+.pd-toggle button{flex:1;padding:10px;border-radius:999px;border:1px solid rgba(215,186,122,.22);background:transparent;color:#a99a80;font:600 11px Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+.pd-toggle button.active{background:rgba(215,186,122,.14);border-color:rgba(215,186,122,.55);color:#f3e7cc}
+.pd-sizes{display:flex;gap:10px}
+.pd-size{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 8px;border-radius:14px;border:1px solid rgba(215,186,122,.2);background:rgba(255,255,255,.02);color:#a99a80;cursor:pointer}
+.pd-size span{font:12px Arial,sans-serif}.pd-size b{font:700 15px Arial,sans-serif;color:#d7ba7a}
+.pd-size.active{border-color:#d7ba7a;background:rgba(215,186,122,.1);color:#f3e7cc}
+.pd-price{font:400 30px Georgia,serif;color:#e9c766;margin:18px 0 12px}
+.pd-add{width:100%;padding:15px;border:0;border-radius:999px;background:linear-gradient(135deg,#d7ba7a,#9a7438);color:#17100a;font:700 13px Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.pd-add.just-added{background:#2e7d4f;color:#fff}
+.pd-trust{margin-top:12px;font:11.5px Arial,sans-serif;color:#8d8376;text-align:center}
+.pd-more{padding:4px 28px 26px;border-top:1px solid rgba(215,186,122,.12)}
+.pd-more .pd-label{margin:18px 0 12px}
+.pd-more-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pd-mini{background:rgba(255,255,255,.02);border:1px solid rgba(215,186,122,.15);border-radius:14px;overflow:hidden;padding:0 0 10px;cursor:pointer;text-align:center;color:#eadab8}
+.pd-mini img{width:100%;height:130px;object-fit:cover;display:block;margin-bottom:8px}
+.pd-mini span{display:block;font:14px Georgia,serif;padding:0 6px}.pd-mini small{display:block;font:11px Arial,sans-serif;color:#a99a80;margin-top:3px}
+@media(max-width:700px){.pd{padding:0;align-items:flex-end}.pd-card{max-height:92vh;border-radius:22px 22px 0 0}.pd-main{grid-template-columns:1fr}.pd-img{min-height:0;aspect-ratio:4/3}.pd-info{padding:20px 18px 18px}.pd-name{font-size:28px}.pd-more{padding:2px 18px 22px}.pd-more-row{gap:8px}.pd-mini img{height:auto;aspect-ratio:1}.pd-mini span{font-size:12.5px}}
+@media (prefers-reduced-motion:reduce){.pd.open{animation:none}}
 </style>
 <style>#catalog-status{opacity:.92}</style>
 <style>
@@ -1564,6 +1602,13 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
       });
     });
 
+    card.querySelector('.card-img').addEventListener('click', function () { openProductDetail(p); });
+    card.querySelector('.card-top h3').addEventListener('click', function () { openProductDetail(p); });
+    const viewBtn = document.createElement('button');
+    viewBtn.type = 'button'; viewBtn.className = 'card-view'; viewBtn.textContent = 'View details';
+    viewBtn.addEventListener('click', function () { openProductDetail(p); });
+    addCartBtn.insertAdjacentElement('afterend', viewBtn);
+
     addCartBtn.addEventListener('click', function () {
       const sel = currentSelection();
       addToCart(p.name, sel.size, sel.price);
@@ -1692,6 +1737,122 @@ footer{max-width:1180px;margin:0 auto !important;border-top:1px solid var(--line
   });
 
   applyFilter(currentFilter);
+
+  // ============================================================
+  // PRODUCT DETAIL CARD (opens when a product photo / name is tapped)
+  // ============================================================
+  let pdModal = null, pdLastFocus = null;
+  function pdFamilies(p) {
+    const n = String(p.notes || '').toLowerCase();
+    return Object.keys(FAMILIES).filter(function (k) { return FAMILIES[k].test(n); });
+  }
+  function pdClose() {
+    if (!pdModal) return;
+    pdModal.classList.remove('open');
+    document.body.style.overflow = '';
+    if (pdLastFocus && pdLastFocus.focus) pdLastFocus.focus();
+  }
+  function pdEnsure() {
+    if (pdModal) return pdModal;
+    pdModal = document.createElement('div');
+    pdModal.className = 'pd';
+    pdModal.setAttribute('role', 'dialog');
+    pdModal.setAttribute('aria-modal', 'true');
+    pdModal.innerHTML = `
+      <div class="pd-card">
+        <button type="button" class="pd-x" aria-label="Close">✕</button>
+        <div class="pd-main">
+          <div class="pd-img"><img alt=""><span class="pd-new" hidden>NEW</span></div>
+          <div class="pd-info">
+            <div class="pd-kicker">IZYAN ATTAR &amp; PERFUMES</div>
+            <h3 class="pd-name"></h3>
+            <p class="pd-notes"></p>
+            <div class="pd-tags"></div>
+            <div class="pd-label">CHOOSE</div>
+            <div class="pd-toggle"><button type="button" data-mode="attar" class="active">Attar</button><button type="button" data-mode="perfume">Perfume</button></div>
+            <div class="pd-sizes"></div>
+            <div class="pd-price"></div>
+            <button type="button" class="pd-add">Add to Cart</button>
+            <div class="pd-trust">🚚 Pan India Free Delivery &nbsp;·&nbsp; 💬 Help on WhatsApp</div>
+          </div>
+        </div>
+        <div class="pd-more" hidden><div class="pd-label">YOU MAY ALSO LIKE</div><div class="pd-more-row"></div></div>
+      </div>`;
+    document.body.appendChild(pdModal);
+    pdModal.querySelector('.pd-x').addEventListener('click', pdClose);
+    pdModal.addEventListener('click', function (e) { if (e.target === pdModal) pdClose(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pdModal.classList.contains('open')) pdClose(); });
+    return pdModal;
+  }
+  function openProductDetail(p) {
+    const m = pdEnsure();
+    if (!m.classList.contains('open')) pdLastFocus = document.activeElement;
+    const q = function (s) { return m.querySelector(s); };
+    const options = {
+      attar: [['6ml', p.attar12 / 2], ['12ml', p.attar12]],
+      perfume: [['50ml', p.perfume50], ['100ml', p.perfume50 * 2]]
+    };
+    let mode = 'attar', size = '12ml';
+    q('.pd-img img').src = p.image; q('.pd-img img').alt = p.name;
+    q('.pd-new').hidden = !p.newArrival;
+    q('.pd-name').textContent = p.name;
+    q('.pd-notes').textContent = p.notes || '';
+    const tags = [];
+    if (typeLabels[p.type]) tags.push(typeLabels[p.type]);
+    if (p.bestseller) tags.push('★ Best Seller');
+    pdFamilies(p).forEach(function (f) { tags.push(f.charAt(0).toUpperCase() + f.slice(1)); });
+    q('.pd-tags').innerHTML = '';
+    tags.forEach(function (t) { const s = document.createElement('span'); s.textContent = t; q('.pd-tags').appendChild(s); });
+    function render() {
+      m.querySelectorAll('.pd-toggle button').forEach(function (b) { b.classList.toggle('active', b.dataset.mode === mode); });
+      const box = q('.pd-sizes'); box.innerHTML = '';
+      options[mode].forEach(function (o) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'pd-size' + (o[0] === size ? ' active' : '');
+        b.innerHTML = '<span></span><b></b>';
+        b.querySelector('span').textContent = o[0];
+        b.querySelector('b').textContent = 'Rs. ' + o[1];
+        b.addEventListener('click', function () { size = o[0]; render(); });
+        box.appendChild(b);
+      });
+      const cur = options[mode].find(function (o) { return o[0] === size; });
+      q('.pd-price').textContent = 'Rs. ' + cur[1];
+    }
+    m.querySelectorAll('.pd-toggle button').forEach(function (b) {
+      b.onclick = function () { mode = b.dataset.mode; size = options[mode][mode === 'attar' ? 1 : 0][0]; render(); };
+    });
+    const add = q('.pd-add');
+    add.textContent = 'Add to Cart'; add.classList.remove('just-added');
+    add.onclick = function () {
+      const cur = options[mode].find(function (o) { return o[0] === size; });
+      addToCart(p.name, size, cur[1]);
+      add.textContent = 'Added ✓'; add.classList.add('just-added');
+      setTimeout(function () { add.textContent = 'Add to Cart'; add.classList.remove('just-added'); }, 1200);
+    };
+    render();
+    // You may also like: same scent family first, then same gender
+    const fam = pdFamilies(p);
+    const others = PRODUCTS.filter(function (x) { return x.name !== p.name; });
+    const score = function (x) { return pdFamilies(x).filter(function (f) { return fam.indexOf(f) > -1; }).length * 2 + (x.type === p.type ? 1 : 0) + (x.bestseller ? 0.5 : 0); };
+    const picks = others.map(function (x) { return [score(x), x]; }).filter(function (a) { return a[0] >= 2; })
+      .sort(function (a, b) { return b[0] - a[0]; }).slice(0, 3).map(function (a) { return a[1]; });
+    const row = q('.pd-more-row'); row.innerHTML = '';
+    picks.forEach(function (x) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'pd-mini';
+      b.innerHTML = '<img alt="" loading="lazy"><span></span><small></small>';
+      b.querySelector('img').src = x.image;
+      b.querySelector('span').textContent = x.name;
+      b.querySelector('small').textContent = 'From Rs. ' + (x.attar12 / 2);
+      b.addEventListener('click', function () { openProductDetail(x); m.querySelector('.pd-card').scrollTop = 0; });
+      row.appendChild(b);
+    });
+    q('.pd-more').hidden = !picks.length;
+    m.setAttribute('aria-label', p.name);
+    m.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    q('.pd-x').focus({ preventScroll: true });
+  }
 
   function reloadProductCatalog() {
     const grid = document.getElementById('product-grid');
